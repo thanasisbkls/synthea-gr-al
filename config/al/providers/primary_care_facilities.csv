@@ -1,0 +1,6 @@
+id,name,address,city,state,zip,phone,ownership,emergency,bed_count,LAT,LON
+AL-P-1,Qendra Shëndetësore Finiq,,Finiq,Vlorë,9716,,Government,false,,39.9058,20.0576
+AL-P-2,Qendra Shëndetësore Mesopotam,,Mesopotam,Vlorë,9717,,Government,false,,39.9106,20.0932
+AL-P-3,Qendra Shëndetësore Aliko,,Aliko,Vlorë,9710,,Government,false,,39.8609,20.0768
+AL-P-4,Qendra Shëndetësore Dhivër,,Dhivër,Vlorë,9712,,Government,false,,39.8391,20.1687
+AL-P-5,Qendra Shëndetësore Livadhja,,Livadhja,Vlorë,9721,,Government,false,,39.7930,20.1231
