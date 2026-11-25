@@ -98,27 +98,23 @@ public class C19VaccineAgeDistributions {
      */
     public AgeRange(String display) {
       this.display = display;
-      switch (display.length()) {
-        case 12:
-          // Example: Ages_75+_yrs
-          this.min = Integer.parseInt(display.substring(5, 7));
-          this.max = Integer.MAX_VALUE;
-          break;
-        case 14:
-          // Example: Ages_40-49_yrs
-          this.min = Integer.parseInt(display.substring(5, 7));
-          this.max = Integer.parseInt(display.substring(8, 10));
-          break;
-        default:
-          throw new IllegalArgumentException("Display should be 12 or 14 characters long.");
+      // United States style "Ages_40-49_yrs" or "Ages_75+_yrs", or just "40-49" or "75+"
+      String range = display;
+      if (range.startsWith("Ages_") && range.endsWith("_yrs")) {
+        range = range.substring(5, range.length() - 4);
+      }
+      if (range.endsWith("+")) {
+        this.min = Integer.parseInt(range.substring(0, range.length() - 1));
+        this.max = Integer.MAX_VALUE;
+      } else if (range.indexOf('-') > 0) {
+        int dash = range.indexOf('-');
+        this.min = Integer.parseInt(range.substring(0, dash));
+        this.max = Integer.parseInt(range.substring(dash + 1));
+      } else {
+        throw new IllegalArgumentException("Age range should look like 40-49 or 75+: " + display);
       }
     }
 
-    /**
-     * Determines whether the specified age falls within this range.
-     * @param age Age in years
-     * @return true if the age is contained in the range
-     */
     public boolean in(int age) {
       return age >= min && age <= max;
     }
@@ -138,7 +134,11 @@ public class C19VaccineAgeDistributions {
    * String representation of the date and an Integer counting the number of doses administered.
    */
   public static void loadRawDistribution() {
-    String fileName = Config.get("generate.lookup_tables") + DOSE_RATES_FILE;
+    rawDistributions.clear();
+    C19VaccinationConfig config = C19VaccinationConfig.get();
+    String fileName = config != null
+        ? config.doseRatesFile
+        : Config.get("generate.lookup_tables") + DOSE_RATES_FILE;
     List<? extends Map<String, String>> rawRates = null;
     try {
       String csv = Utilities.readResource(fileName, true, true);
@@ -164,13 +164,15 @@ public class C19VaccineAgeDistributions {
     // prior to May 10, 2021, the numbers are pretty small. This strips out that population for
     // the sake of simplicity in the simulation
     AgeRange specialCaseRange = new AgeRange("Ages_12-15_yrs");
-    rawDistributions.put(specialCaseRange, rawDistributions.get(specialCaseRange).stream()
-        .filter(pair -> {
-          String dateString = pair.getFirst();
-          LocalDate doseCountDate = CSV_DATE_FORMAT.parse(dateString, LocalDate::from);
-          return doseCountDate.isAfter(EXPAND_AGE_TO_TWELVE);
-        })
-        .collect(Collectors.toList()));
+    if (rawDistributions.containsKey(specialCaseRange)) {
+      rawDistributions.put(specialCaseRange, rawDistributions.get(specialCaseRange).stream()
+          .filter(pair -> {
+            String dateString = pair.getFirst();
+            LocalDate doseCountDate = CSV_DATE_FORMAT.parse(dateString, LocalDate::from);
+            return doseCountDate.isAfter(EXPAND_AGE_TO_TWELVE);
+          })
+          .collect(Collectors.toList()));
+    }
   }
 
   /**
@@ -178,6 +180,7 @@ public class C19VaccineAgeDistributions {
    * to select the date of vaccination administration. Must be called after loadRawDistribution().
    */
   public static void populateDistributions() {
+    distributions.clear();
     rawDistributions.forEach((ageRange, dayInfoList) -> {
       double totalDosesForRange = dayInfoList.stream()
           .map(pair -> pair.getSecond()).collect(Collectors.summingInt(Integer::intValue));
@@ -195,6 +198,13 @@ public class C19VaccineAgeDistributions {
    * vaccinated.
    */
   public static void loadShotProbabilitiesByAge() {
+    firstShotProbByAge.clear();
+    C19VaccinationConfig config = C19VaccinationConfig.get();
+    if (config != null) {
+      config.uptakeByAge.forEach((range, percent) ->
+          firstShotProbByAge.put(new AgeRange(range), percent / 100));
+      return;
+    }
     String fileName = "covid19/" + FIRST_SHOT_PROBS_FILE;
     LinkedTreeMap<String, Object> rawShotProbs = null;
     try {

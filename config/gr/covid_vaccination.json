@@ -1,0 +1,328 @@
+{
+  "description": "Greece: ECDC COVID-19 vaccine tracker (weekly first doses by age band and vaccine, reporting country EL, 2020-W52 to 2023-W39). Uptake is the share of each band that got a first dose.",
+  "dose_rates_file": "config/gr/covid_dose_rates.csv",
+  "eligibility": [
+    {
+      "min_age": 18,
+      "from": "2020-12-23"
+    },
+    {
+      "min_age": 15,
+      "from": "2021-05-24"
+    },
+    {
+      "min_age": 12,
+      "from": "2021-07-26"
+    }
+  ],
+  "first_shots_until": "2023-10-01",
+  "uptake_by_age": {
+    "12-14": 37.5,
+    "15-17": 60.2,
+    "18-24": 81.5,
+    "25-49": 81.6,
+    "50-59": 83.4,
+    "60-69": 89.8,
+    "70-79": 92.9,
+    "80+": 91.8
+  },
+  "vaccines": [
+    {
+      "name": "PFIZER",
+      "cvx": "208",
+      "display": "COVID-19, mRNA, LNP-S, PF, 30 mcg/0.3 mL dose",
+      "two_dose": true,
+      "days_between_doses": 21
+    },
+    {
+      "name": "MODERNA",
+      "cvx": "207",
+      "display": "COVID-19, mRNA, LNP-S, PF, 100 mcg/0.5mL dose or 50 mcg/0.25mL dose",
+      "two_dose": true,
+      "days_between_doses": 28
+    },
+    {
+      "name": "ASTRAZENECA",
+      "cvx": "210",
+      "display": "COVID-19 vaccine, vector-nr, rS-ChAdOx1, PF, 0.5 mL",
+      "two_dose": true,
+      "days_between_doses": 56
+    },
+    {
+      "name": "JANSSEN",
+      "cvx": "212",
+      "display": "COVID-19 vaccine, vector-nr, rS-Ad26, PF, 0.5 mL",
+      "two_dose": false,
+      "days_between_doses": 0
+    }
+  ],
+  "vaccine_mix": [
+    {
+      "from": "2020-12-23",
+      "share": {
+        "PFIZER": 4049,
+        "MODERNA": 17,
+        "ASTRAZENECA": 2
+      }
+    },
+    {
+      "from": "2021-01-01",
+      "share": {
+        "JANSSEN": 8,
+        "MODERNA": 328,
+        "ASTRAZENECA": 199,
+        "PFIZER": 232160
+      }
+    },
+    {
+      "from": "2021-02-01",
+      "share": {
+        "ASTRAZENECA": 86767,
+        "PFIZER": 219169,
+        "JANSSEN": 5,
+        "MODERNA": 37839
+      }
+    },
+    {
+      "from": "2021-03-01",
+      "share": {
+        "PFIZER": 313179,
+        "ASTRAZENECA": 256017,
+        "JANSSEN": 150,
+        "MODERNA": 35901
+      }
+    },
+    {
+      "from": "2021-04-01",
+      "share": {
+        "MODERNA": 118611,
+        "ASTRAZENECA": 209519,
+        "PFIZER": 678511,
+        "JANSSEN": 153
+      }
+    },
+    {
+      "from": "2021-05-01",
+      "share": {
+        "PFIZER": 1259104,
+        "ASTRAZENECA": 225948,
+        "JANSSEN": 125861,
+        "MODERNA": 202440
+      }
+    },
+    {
+      "from": "2021-06-01",
+      "share": {
+        "MODERNA": 111697,
+        "ASTRAZENECA": 6554,
+        "PFIZER": 780611,
+        "JANSSEN": 122050
+      }
+    },
+    {
+      "from": "2021-07-01",
+      "share": {
+        "ASTRAZENECA": 2213,
+        "PFIZER": 566747,
+        "JANSSEN": 89651,
+        "MODERNA": 32264
+      }
+    },
+    {
+      "from": "2021-08-01",
+      "share": {
+        "JANSSEN": 60611,
+        "MODERNA": 14307,
+        "PFIZER": 280715,
+        "ASTRAZENECA": 161
+      }
+    },
+    {
+      "from": "2021-09-01",
+      "share": {
+        "ASTRAZENECA": 113,
+        "PFIZER": 205574,
+        "JANSSEN": 43395,
+        "MODERNA": 8447
+      }
+    },
+    {
+      "from": "2021-10-01",
+      "share": {
+        "JANSSEN": 24654,
+        "MODERNA": 4846,
+        "ASTRAZENECA": 66,
+        "PFIZER": 124926
+      }
+    },
+    {
+      "from": "2021-11-01",
+      "share": {
+        "ASTRAZENECA": 30,
+        "PFIZER": 369353,
+        "JANSSEN": 67559,
+        "MODERNA": 11603
+      }
+    },
+    {
+      "from": "2021-12-01",
+      "share": {
+        "MODERNA": 7663,
+        "JANSSEN": 34777,
+        "ASTRAZENECA": 32,
+        "PFIZER": 217297
+      }
+    },
+    {
+      "from": "2022-01-01",
+      "share": {
+        "PFIZER": 138189,
+        "JANSSEN": 17141,
+        "MODERNA": 5669,
+        "ASTRAZENECA": 8
+      }
+    },
+    {
+      "from": "2022-02-01",
+      "share": {
+        "ASTRAZENECA": 3,
+        "PFIZER": 36528,
+        "JANSSEN": 5335,
+        "MODERNA": 957
+      }
+    },
+    {
+      "from": "2022-03-01",
+      "share": {
+        "JANSSEN": 2205,
+        "MODERNA": 310,
+        "PFIZER": 12197
+      }
+    },
+    {
+      "from": "2022-04-01",
+      "share": {
+        "PFIZER": 3612,
+        "JANSSEN": 1042,
+        "MODERNA": 81
+      }
+    },
+    {
+      "from": "2022-05-01",
+      "share": {
+        "PFIZER": 1616,
+        "JANSSEN": 749,
+        "MODERNA": 27
+      }
+    },
+    {
+      "from": "2022-06-01",
+      "share": {
+        "PFIZER": 1159,
+        "MODERNA": 4,
+        "JANSSEN": 345
+      }
+    },
+    {
+      "from": "2022-07-01",
+      "share": {
+        "MODERNA": 4,
+        "ASTRAZENECA": 1,
+        "PFIZER": 1219,
+        "JANSSEN": 366
+      }
+    },
+    {
+      "from": "2022-08-01",
+      "share": {
+        "PFIZER": 881,
+        "JANSSEN": 394,
+        "MODERNA": 1
+      }
+    },
+    {
+      "from": "2022-09-01",
+      "share": {
+        "PFIZER": 598,
+        "JANSSEN": 466
+      }
+    },
+    {
+      "from": "2022-10-01",
+      "share": {
+        "PFIZER": 495,
+        "JANSSEN": 257,
+        "MODERNA": 1
+      }
+    },
+    {
+      "from": "2022-11-01",
+      "share": {
+        "PFIZER": 330,
+        "JANSSEN": 187
+      }
+    },
+    {
+      "from": "2022-12-01",
+      "share": {
+        "PFIZER": 222,
+        "JANSSEN": 131
+      }
+    },
+    {
+      "from": "2023-01-01",
+      "share": {
+        "PFIZER": 174,
+        "JANSSEN": 259
+      }
+    },
+    {
+      "from": "2023-02-01",
+      "share": {
+        "JANSSEN": 74,
+        "PFIZER": 22
+      }
+    },
+    {
+      "from": "2023-03-01",
+      "share": {
+        "PFIZER": 36,
+        "JANSSEN": 156
+      }
+    },
+    {
+      "from": "2023-04-01",
+      "share": {
+        "PFIZER": 25,
+        "JANSSEN": 58
+      }
+    },
+    {
+      "from": "2023-05-01",
+      "share": {
+        "JANSSEN": 62,
+        "PFIZER": 1
+      }
+    },
+    {
+      "from": "2023-06-01",
+      "share": {
+        "PFIZER": 2,
+        "JANSSEN": 34
+      }
+    },
+    {
+      "from": "2023-07-01",
+      "share": {
+        "JANSSEN": 27,
+        "PFIZER": 1
+      }
+    },
+    {
+      "from": "2023-08-01",
+      "share": {
+        "JANSSEN": 2
+      }
+    }
+  ]
+}

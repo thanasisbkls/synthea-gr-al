@@ -1,0 +1,22 @@
+{
+  "dose_rates_file": "covid/test_dose_rates.csv",
+  "eligibility": [
+    {"min_age": 12, "from": "2021-06-01"},
+    {"min_age": 18, "from": "2021-03-01"}
+  ],
+  "first_shots_until": "2021-12-31",
+  "uptake_by_age": {"12-17": 40.0, "18-59": 70.5, "60+": 90.0},
+  "vaccines": [
+    {"name": "PFIZER", "cvx": "208", "display": "Pfizer test", "two_dose": true,
+     "days_between_doses": 21},
+    {"name": "ASTRAZENECA", "cvx": "210", "display": "AstraZeneca test", "two_dose": true,
+     "days_between_doses": 56},
+    {"name": "JANSSEN", "cvx": "212", "display": "Janssen test", "two_dose": false,
+     "days_between_doses": 0}
+  ],
+  "vaccine_mix": [
+    {"from": "2021-04-01", "share": {"PFIZER": 1, "ASTRAZENECA": 1}},
+    {"from": "2021-03-01", "share": {"PFIZER": 1}},
+    {"from": "2021-05-01", "share": {"JANSSEN": 1}}
+  ]
+}

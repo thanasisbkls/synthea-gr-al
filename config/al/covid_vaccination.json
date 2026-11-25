@@ -1,0 +1,83 @@
+{
+  "description": "Albania: first-dose timing from Our World in Data (people vaccinated per day, 2021-01-10 to 2023-09-10); age order borrowed from Greece (ECDC) at the same national coverage level; uptake by age from a seroprevalence study scaled to the official 59.9%; vaccines and first-use dates from the Albanian Wikipedia table (doses arrived as weights).",
+  "dose_rates_file": "config/al/covid_dose_rates.csv",
+  "eligibility": [
+    {
+      "min_age": 18,
+      "from": "2021-01-11"
+    },
+    {
+      "min_age": 16,
+      "from": "2021-11-01"
+    }
+  ],
+  "first_shots_until": "2023-09-10",
+  "uptake_by_age": {
+    "16-30": 54.0,
+    "31-45": 57.1,
+    "46-60": 60.7,
+    "61+": 61.6
+  },
+  "vaccines": [
+    {
+      "name": "PFIZER",
+      "cvx": "208",
+      "display": "COVID-19, mRNA, LNP-S, PF, 30 mcg/0.3 mL dose",
+      "two_dose": true,
+      "days_between_doses": 21
+    },
+    {
+      "name": "ASTRAZENECA",
+      "cvx": "210",
+      "display": "COVID-19 vaccine, vector-nr, rS-ChAdOx1, PF, 0.5 mL",
+      "two_dose": true,
+      "days_between_doses": 56
+    },
+    {
+      "name": "SPUTNIK_V",
+      "cvx": "505",
+      "display": "COVID-19 VVnr Non-US Vaccine (Sputnik V)",
+      "two_dose": true,
+      "days_between_doses": 21
+    },
+    {
+      "name": "CORONAVAC",
+      "cvx": "511",
+      "display": "COVID-19 IV Non-US Vaccine (CoronaVac, Sinovac)",
+      "two_dose": true,
+      "days_between_doses": 14
+    }
+  ],
+  "vaccine_mix": [
+    {
+      "from": "2021-01-11",
+      "share": {
+        "PFIZER": 360635
+      }
+    },
+    {
+      "from": "2021-03-13",
+      "share": {
+        "PFIZER": 360635,
+        "ASTRAZENECA": 249200
+      }
+    },
+    {
+      "from": "2021-03-26",
+      "share": {
+        "PFIZER": 360635,
+        "ASTRAZENECA": 249200,
+        "SPUTNIK_V": 60000
+      }
+    },
+    {
+      "from": "2021-03-28",
+      "share": {
+        "PFIZER": 360635,
+        "ASTRAZENECA": 249200,
+        "SPUTNIK_V": 60000,
+        "CORONAVAC": 1000000
+      }
+    }
+  ]
+}

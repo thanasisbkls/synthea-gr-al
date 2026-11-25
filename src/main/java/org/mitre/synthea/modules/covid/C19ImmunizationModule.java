@@ -17,7 +17,9 @@ import org.mitre.synthea.world.concepts.ClinicianSpecialty;
 import org.mitre.synthea.world.concepts.HealthRecord;
 
 /**
- * A module to simulate COVID-19 Immunizations in the United States.
+ * A module to simulate COVID-19 Immunizations in the United States, or in another country when
+ * the property {@value C19VaccinationConfig#PROPERTY} names a country file (see
+ * {@link C19VaccinationConfig}); the description below is of the United States behavior.
  * <p>
  * People meeting the criteria for vaccination may get one as soon as it it available. A percentage
  * of the population will opt not to get vaccinated and drop out. For individuals in the simulation
@@ -196,6 +198,10 @@ public class C19ImmunizationModule extends Module {
    */
   public static boolean eligibleForShot(Person person, long time) {
     int age = person.ageInYears(time);
+    C19VaccinationConfig config = C19VaccinationConfig.get();
+    if (config != null) {
+      return config.eligible(age, time);
+    }
     if (age >= FIRST_ELIGIBLE_AGE
         || (time >= EXPAND_AGE_TO_TWELVE) && age >= EXPANDED_ELIGIBLE_AGE) {
       return true;
@@ -226,6 +232,10 @@ public class C19ImmunizationModule extends Module {
    * @return a vaccine that should be administered to the person
    */
   public static C19Vaccine.EUASet selectVaccine(Person person, long time) {
+    C19VaccinationConfig config = C19VaccinationConfig.get();
+    if (config != null) {
+      return C19Vaccine.EUASet.valueOf(config.selectVaccine(person, time));
+    }
     if (time < FIRST_POSSIBLE_SHOT_TIME) {
       throw new IllegalArgumentException("No vaccines were available at time: " + time);
     } else if (time < MODERNA_APPROVED) {
@@ -297,7 +307,10 @@ public class C19ImmunizationModule extends Module {
    */
   @Override
   public boolean process(Person person, long time) {
-    if (time < FIRST_POSSIBLE_SHOT_TIME) {
+    C19VaccinationConfig config = C19VaccinationConfig.get();
+    long firstPossibleShot =
+        config != null ? config.firstPossibleShotTime() : FIRST_POSSIBLE_SHOT_TIME;
+    if (time < firstPossibleShot) {
       return false;
     }
 
@@ -366,7 +379,9 @@ public class C19ImmunizationModule extends Module {
         // TODO: set up age group specific chances that people will get vaccinated beyond the actual
         // data we have. Particularly relevant for 12-15 year olds as demand is still somewhat high
         // in that group
-        if (time >= LATE_ADOPTION_START_TIME) {
+        long lateAdoptionStart =
+            config != null ? config.lateAdoptionStartTime() : LATE_ADOPTION_START_TIME;
+        if (time >= lateAdoptionStart) {
           LateAdopterModel model = (LateAdopterModel) person.attributes.get(C19_LATE_ADOPTER_MODEL);
           if (model == null) {
             model = new LateAdopterModel(person, time);

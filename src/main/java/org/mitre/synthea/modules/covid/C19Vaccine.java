@@ -39,13 +39,34 @@ public class C19Vaccine {
     /** Moderna COVID-19 Vaccine. */
     MODERNA,
     /** Johnson and Johnson (Janssen) COVID-19 Vaccine. */
-    JANSSEN
+    JANSSEN,
+    /** Oxford-AstraZeneca COVID-19 Vaccine. */
+    ASTRAZENECA,
+    /** Sputnik V COVID-19 Vaccine. */
+    SPUTNIK_V,
+    /** CoronaVac (Sinovac) COVID-19 Vaccine. */
+    CORONAVAC
   }
 
   /**
    * Initialize the class level information on vaccination. Needed so that selectShot will work.
    */
+  /**
+   * Set up the vaccines: those of the country file if one is configured, otherwise the United
+   * States set with its usage percentages.
+   */
   public static void initialize() {
+    EUAs.clear();
+    C19VaccinationConfig config = C19VaccinationConfig.get();
+    if (config != null) {
+      // country vaccines; their share over time is in the configuration
+      for (C19VaccinationConfig.VaccineDefinition v : config.vaccines) {
+        EUAs.put(EUASet.valueOf(v.name), new C19Vaccine(v.display, v.cvx, v.twoDose, 0.0,
+            Utilities.convertTime("days", v.daysBetweenDoses)));
+      }
+      shotSelector = null;
+      return;
+    }
     EUAs.put(EUASet.PFIZER,
         new C19Vaccine("COVID-19, mRNA, LNP-S, PF, 30 mcg/0.3 mL dose",
             "208", true, 0.531,
@@ -65,11 +86,6 @@ public class C19Vaccine {
     shotSelector = new SyncedEnumeratedDistro<EUASet>(pmf);
   }
 
-  /**
-   * Select a vaccine to be used for an individual.
-   * @param person to vaccinate
-   * @return a vaccine to use
-   */
   public static EUASet selectShot(Person person) {
     if (shotSelector == null) {
       initialize();
