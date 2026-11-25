@@ -154,10 +154,13 @@ public final class LifecycleModule extends Module {
     attributes.put(Person.ID, person.randUUID().toString());
     String language = (String) attributes.get(Person.FIRST_LANGUAGE);
     String gender = (String) attributes.get(Person.GENDER);
+    // the father's surname, in its male form (null if the person already has a name)
+    String paternalName = null;
     if (attributes.get(Person.ENTITY) == null) {
       attributes.put(Person.BIRTHDATE, time);
       String firstName = Names.fakeFirstName(gender, language, person);
-      String lastName = Names.fakeLastName(language, person);
+      paternalName = Names.fakeLastName(language, person);
+      String lastName = Names.surnameForGender(paternalName, gender, language);
       attributes.put(Person.FIRST_NAME, firstName);
       String middleName = null;
       if (person.rand() <= MIDDLE_NAME_PROBABILITY) {
@@ -176,12 +179,14 @@ public final class LifecycleModule extends Module {
     }
 
     String motherFirstName = Names.fakeFirstName("F", language, person);
-    String motherLastName = Names.fakeLastName(language, person);
+    String motherLastName = Names.fakeLastName("F", language, person);
     attributes.put(Person.NAME_MOTHER, motherFirstName + " " + motherLastName);
 
     String fatherFirstName = Names.fakeFirstName("M", language, person);
     // this is anglocentric where the baby gets the father's last name
-    attributes.put(Person.NAME_FATHER, fatherFirstName + " " + attributes.get(Person.LAST_NAME));
+    String fatherLastName =
+        paternalName != null ? paternalName : (String) attributes.get(Person.LAST_NAME);
+    attributes.put(Person.NAME_FATHER, fatherFirstName + " " + fatherLastName);
 
     double prevalenceOfTwins =
         (double) BiometricsConfig.get("lifecycle.prevalence_of_twins", 0.02);
@@ -348,7 +353,9 @@ public final class LifecycleModule extends Module {
           Boolean getsMarried = (person.rand() < 0.8);
           if (getsMarried) {
             person.attributes.put(Person.MARITAL_STATUS, "M");
-            if ("F".equals(person.attributes.get(Person.GENDER))) {
+            // Greek women keep their own surname
+            if ("F".equals(person.attributes.get(Person.GENDER))
+                && !"greek".equals(person.attributes.get(Person.FIRST_LANGUAGE))) {
               person.attributes.put(Person.NAME_PREFIX, "Mrs.");
               person.attributes.put(Person.MAIDEN_NAME, person.attributes.get(Person.LAST_NAME));
               String firstName = ((String) person.attributes.get(Person.FIRST_NAME));
