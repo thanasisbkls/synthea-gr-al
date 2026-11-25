@@ -175,7 +175,7 @@ public final class LifecycleModule extends Module {
       attributes.put(Person.TELECOM, phoneNumber);
 
       boolean hasStreetAddress2 = person.rand() < 0.5;
-      attributes.put(Person.ADDRESS, Names.fakeAddress(hasStreetAddress2, person));
+      attributes.put(Person.ADDRESS, Names.fakeAddress(hasStreetAddress2, language, person));
     }
 
     String motherFirstName = Names.fakeFirstName("F", language, person);

@@ -223,30 +223,55 @@ public class Names {
   }
 
   /**
-   * Generate a Street Address.
+   * Generate a Street Address in the english (US) style.
    * @param includeLine2 Whether or not the address should have a second line,
    *     which can take the form of an apartment, unit, or suite number.
    * @param person person to generate an address for.
-   * @return First name.
+   * @return Street address.
+   */
+  public static String fakeAddress(boolean includeLine2, Person person) {
+    return fakeAddress(includeLine2, "english", person);
+  }
+
+  /**
+   * Generate a Street Address in the style of a language. Greek: "Οδός Παπαδοπούλου 245", the
+   * street named after a surname in the genitive. Albanian: "Rruga Hoxha 245". Any other language
+   * uses the english style, "245 Smith Street".
+   * @param includeLine2 Whether or not the address should have a second line,
+   *     which can take the form of an apartment, unit, or suite number.
+   * @param language Origin language of the address
+   * @param person person to generate an address for.
+   * @return Street address.
    */
   @SuppressWarnings("unchecked")
-  public static String fakeAddress(boolean includeLine2, Person person) {
+  public static String fakeAddress(boolean includeLine2, String language, Person person) {
+    String block = nameBlock(language);
+    boolean local = "greek".equals(block) || "albanian".equals(block);
+    String streetPath = local ? "street." + block + "." : "street.";
     int number = person.randInt(1000) + 100;
-    List<String> n = (List<String>)names.get("english.family");
+    List<String> n = (List<String>) names.get((local ? block : "english") + ".family");
     // for now just use family names as the street name.
     // could expand with a few more but probably not worth it
     String streetName = n.get(person.randInt(n.size()));
-    List<String> a = (List<String>)names.get("street.type");
+    if ("greek".equals(block)) {
+      streetName = surnameForGender(streetName, "F", block); // the genitive
+    }
+    List<String> a = (List<String>) names.get(streetPath + "type");
     String streetType = a.get(person.randInt(a.size()));
 
+    String address;
+    if (local) {
+      address = streetType + " " + streetName + " " + number;
+    } else {
+      address = number + " " + streetName + " " + streetType;
+    }
     if (includeLine2) {
       int addtlNum = person.randInt(100);
-      List<String> s = (List<String>)names.get("street.secondary");
+      List<String> s = (List<String>) names.get(streetPath + "secondary");
       String addtlType = s.get(person.randInt(s.size()));
-      return number + " " + streetName + " " + streetType + " " + addtlType + " " + addtlNum;
-    } else {
-      return number + " " + streetName + " " + streetType;
+      return address + " " + addtlType + " " + addtlNum;
     }
+    return address;
   }
 
   /**

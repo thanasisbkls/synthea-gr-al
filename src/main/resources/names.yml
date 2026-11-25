@@ -31,3 +31,12 @@ street:
   # https://en.wikipedia.org/wiki/Street_or_road_name#Street_type_designations
   type: [Avenue, Boulevard, Parade, Road, Street, Arcade, Alley, Bay, Branch, Brook, Burg, Byway, Camp, Center, Club, Common, Corner, Course, Dale, Divide, Drive, Estate, Flat, Forge, Fork, Fort, Gardens, Gate, Gateway, Glen, Green, Grove, Harbor, Haven, Heights, Highlands, Hollow, Key, Knoll, Landing, Lane, Light, Loaf, Lock, Lodge, Manor, Meadow, Mews, Mill, Mission, Neck, Orchard, Passage, Path, Pathway, Ranch, Rapid, Rest, Route, Row, Rue, Run, Station, Terrace, Throughway, Trace, Track, Trafficway, Trail, Trailer, Union, Vale, View, Village, Ville, Vista, Walk, Wall, Way, Well, Wynd, Annex, Approach, Bridge, Bypass, Crossing, Crossroad, Dam, Esplanade, Extension, Ferry, Frontage road, Junction, Mall, Overpass, Parade, Park, Plaza, Port, Promenade, Quay, Ramp, Skyway, Spur, Stravenue, Tunnel, Underpass, Viaduct]
   secondary: [Unit, Apt, Suite]
+  # Street words for the greek and albanian addresses (Wiktionary: οδός "street", διαμέρισμα
+  # "apartment", rruga = definite form of rrugë "street", apartamenti = definite form of
+  # apartament "apartment"). The street name is a surname from the language's family list.
+  greek:
+    type: [Οδός]
+    secondary: [Διαμέρισμα]
+  albanian:
+    type: [Rruga]
+    secondary: [Apartamenti]

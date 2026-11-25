@@ -118,4 +118,34 @@ public class NamesTest {
           Names.fakeLastName("F", "spanish", new Person(seed)));
     }
   }
+
+  @Test
+  public void greekAddresses() {
+    for (int seed = 0; seed < 100; seed++) {
+      String address = Names.fakeAddress(seed % 2 == 0, "greek", new Person(seed));
+      String pattern = "^Οδός [\\u0370-\\u03FF\\u1F00-\\u1FFF]+ \\d+( Διαμέρισμα \\d+)?$";
+      assertTrue(address, address.matches(pattern));
+      assertEquals(seed % 2 == 0, address.contains("Διαμέρισμα"));
+    }
+  }
+
+  @Test
+  public void albanianAddresses() {
+    for (int seed = 0; seed < 100; seed++) {
+      String address = Names.fakeAddress(seed % 2 == 0, "albanian", new Person(seed));
+      String pattern = "^Rruga [A-Za-z\\u00C7\\u00E7\\u00CB\\u00EB]+ \\d+( Apartamenti \\d+)?$";
+      assertTrue(address, address.matches(pattern));
+    }
+  }
+
+  @Test
+  public void usAddressesAreUnchanged() {
+    for (int seed = 0; seed < 50; seed++) {
+      boolean line2 = seed % 2 == 0;
+      String address = Names.fakeAddress(line2, new Person(seed));
+      assertEquals(address, Names.fakeAddress(line2, "english", new Person(seed)));
+      assertEquals(address, Names.fakeAddress(line2, "french", new Person(seed)));
+      assertTrue(address, address.matches("^\\d+ .+ .+( (Unit|Apt|Suite) \\d+)?$"));
+    }
+  }
 }
