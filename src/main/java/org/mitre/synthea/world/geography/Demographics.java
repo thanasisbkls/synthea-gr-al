@@ -160,7 +160,20 @@ public class Demographics implements Comparable<Demographics>, Serializable {
   }
 
   /**
+   * The language every person speaks, set with `generate.geography.language` (for example
+   * "greek"), or null if it is not set. When set, race and ethnicity do not select a language.
+   * @return the language, or null
+   */
+  public static String configuredLanguage() {
+    String language = Config.get("generate.geography.language", "");
+    return (language == null || language.trim().isEmpty())
+        ? null : language.trim().toLowerCase();
+  }
+
+  /**
    * Selects a language based on race and ethnicity.
+   * If `generate.geography.language` is set, that language is returned and no random number is
+   * used.
    * For those of Hispanic ethnicity, language statistics are pulled from the national distribution
    * of spoken languages. For non-Hispanic, national distributions by race are used.
    * @param race US Census race
@@ -170,6 +183,10 @@ public class Demographics implements Comparable<Demographics>, Serializable {
    */
   public String languageFromRaceAndEthnicity(String race, String ethnicity,
       RandomNumberGenerator random) {
+    String configured = configuredLanguage();
+    if (configured != null) {
+      return configured;
+    }
     if (ethnicity.equals("hispanic")) {
       RandomCollection<String> hispanicLanguageUsage = new RandomCollection<>();
       // https://factfinder.census.gov/faces/tableservices/jsf/pages/productview.xhtml?pid=ACS_17_5YR_B16006&prodType=table

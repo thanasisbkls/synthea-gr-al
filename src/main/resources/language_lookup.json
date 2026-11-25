@@ -54,6 +54,11 @@
     "system": "urn:ietf:bcp:47",
     "display": "Vietnamese"
   },
+  "albanian": {
+    "code": "sq",
+    "system": "urn:ietf:bcp:47",
+    "display": "Albanian"
+  },
   "greek": {
     "code": "el",
     "system": "urn:ietf:bcp:47",

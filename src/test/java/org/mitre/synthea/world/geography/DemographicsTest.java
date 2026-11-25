@@ -1,5 +1,7 @@
 package org.mitre.synthea.world.geography;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.google.common.collect.Table;
@@ -100,5 +102,57 @@ public class DemographicsTest {
     }
     assertTrue(languageMap.get("english") > 6400 && languageMap.get("english") < 7000);
     assertTrue(languageMap.get("chinese") > 900 && languageMap.get("chinese") < 1900);
+  }
+
+  @Test
+  public void configuredLanguageOverridesRaceAndEthnicity() {
+    try {
+      for (String language : new String[] {"greek", "albanian"}) {
+        Config.set("generate.geography.language", language);
+        assertEquals(language, Demographics.configuredLanguage());
+        for (String race : new String[] {"white", "black", "asian", "native", "other"}) {
+          for (String ethnicity : new String[] {"hispanic", "nonhispanic"}) {
+            for (int i = 0; i < 20; i++) {
+              assertEquals(language,
+                  philly.languageFromRaceAndEthnicity(race, ethnicity, random));
+            }
+          }
+        }
+      }
+    } finally {
+      Config.remove("generate.geography.language");
+    }
+  }
+
+  @Test
+  public void configuredLanguageUsesNoRandomNumbers() {
+    try {
+      Config.set("generate.geography.language", "greek");
+      DefaultRandomNumberGenerator a = new DefaultRandomNumberGenerator(9);
+      DefaultRandomNumberGenerator b = new DefaultRandomNumberGenerator(9);
+      philly.languageFromRaceAndEthnicity("white", "nonhispanic", a);
+      assertEquals(b.rand(), a.rand(), 0.0);
+    } finally {
+      Config.remove("generate.geography.language");
+    }
+  }
+
+  @Test
+  public void unsetOrBlankLanguageKeepsUsBehavior() {
+    assertNull(Demographics.configuredLanguage());
+    try {
+      Config.set("generate.geography.language", "  ");
+      assertNull(Demographics.configuredLanguage());
+    } finally {
+      Config.remove("generate.geography.language");
+    }
+    // the existing languageFromRaceAndEthnicity test covers the unchanged US distribution
+    int english = 0;
+    for (int i = 0; i < 1000; i++) {
+      if ("english".equals(philly.languageFromRaceAndEthnicity("white", "nonhispanic", random))) {
+        english++;
+      }
+    }
+    assertTrue(english > 950);
   }
 }

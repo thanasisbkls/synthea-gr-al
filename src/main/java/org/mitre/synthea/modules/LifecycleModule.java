@@ -35,6 +35,7 @@ import org.mitre.synthea.world.concepts.HealthRecord.Procedure;
 import org.mitre.synthea.world.concepts.Names;
 import org.mitre.synthea.world.concepts.PediatricGrowthTrajectory;
 import org.mitre.synthea.world.concepts.VitalSign;
+import org.mitre.synthea.world.geography.Demographics;
 import org.mitre.synthea.world.geography.Location;
 
 /**
@@ -207,7 +208,12 @@ public final class LifecycleModule extends Module {
       person.attributes.put(Person.ZIP, zipCode);
       person.attributes.put(Person.FIPS, Location.getFipsCodeByZipCode(zipCode));
       String[] birthPlace;
-      if ("english".equalsIgnoreCase((String) attributes.get(Person.FIRST_LANGUAGE))) {
+      String firstLanguage = (String) attributes.get(Person.FIRST_LANGUAGE);
+      // people who speak the area's own language (english, or `generate.geography.language`)
+      // are born locally; others get a foreign birthplace for their language
+      if ("english".equalsIgnoreCase(firstLanguage)
+          || (firstLanguage != null
+              && firstLanguage.equalsIgnoreCase(Demographics.configuredLanguage()))) {
         birthPlace = location.randomBirthPlace(person);
       } else {
         birthPlace = location.randomBirthplaceByLanguage(
