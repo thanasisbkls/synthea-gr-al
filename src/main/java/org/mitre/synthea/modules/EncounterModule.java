@@ -7,6 +7,7 @@ import java.util.Map;
 import org.mitre.synthea.engine.Module;
 import org.mitre.synthea.helpers.Attributes;
 import org.mitre.synthea.helpers.Attributes.Inventory;
+import org.mitre.synthea.helpers.Config;
 import org.mitre.synthea.helpers.Utilities;
 import org.mitre.synthea.world.agents.Person;
 import org.mitre.synthea.world.agents.Provider;
@@ -78,6 +79,41 @@ public final class EncounterModule extends Module {
     this.name = EncounterModule.NAME;
   }
 
+  /** Property prefix of the settings below. */
+  private static final String PROPERTY_PREFIX = "generate.encounters.";
+
+  private static int setting(String key, int defaultValue) {
+    return Config.getAsInteger(PROPERTY_PREFIX + key, defaultValue);
+  }
+
+  // The thresholds and wellness intervals can be changed with properties. The defaults are the
+  // original (United States) values, so nothing changes unless a property is set.
+  // Symptom thresholds: generate.encounters.symptom_threshold.{pcp,urgent_care,emergency}
+  private final int pcpThreshold = setting("symptom_threshold.pcp", PCP_SYMPTOM_THRESHOLD);
+  private final int urgentCareThreshold =
+      setting("symptom_threshold.urgent_care", URGENT_CARE_SYMPTOM_THRESHOLD);
+  private final int emergencyThreshold =
+      setting("symptom_threshold.emergency", EMERGENCY_SYMPTOM_THRESHOLD);
+
+  // Wellness visit intervals: generate.encounters.wellness.interval_months.* for the first
+  // 3 years (up to the age in months), interval_years.* from 4 years (a very large number of
+  // years, for example 200, effectively switches wellness visits off for that age group), and the
+  // longest interval of people on chronic medication.
+  private final int wellnessMonthsUpTo1Month =
+      setting("wellness.interval_months.age_0_1_months", 1);
+  private final int wellnessMonthsUpTo5Months =
+      setting("wellness.interval_months.age_2_5_months", 2);
+  private final int wellnessMonthsUpTo17Months =
+      setting("wellness.interval_months.age_6_17_months", 3);
+  private final int wellnessMonthsUpTo3Years =
+      setting("wellness.interval_months.age_18_months_to_3_years", 6);
+  private final int wellnessYears4To19 = setting("wellness.interval_years.age_4_19", 1);
+  private final int wellnessYears20To39 = setting("wellness.interval_years.age_20_39", 3);
+  private final int wellnessYears40To49 = setting("wellness.interval_years.age_40_49", 2);
+  private final int wellnessYears50Plus = setting("wellness.interval_years.age_50_plus", 1);
+  private final int wellnessChronicMedicationMaxYears =
+      setting("wellness.chronic_medication_max_interval_years", 1);
+
   /**
    * Clone the module.
    *
@@ -108,7 +144,7 @@ public final class EncounterModule extends Module {
       encounter.name = "Encounter Module Scheduled Wellness";
       person.attributes.put(ACTIVE_WELLNESS_ENCOUNTER, true);
       startedEncounter = true;
-    } else if (person.symptomTotal() > EMERGENCY_SYMPTOM_THRESHOLD) {
+    } else if (person.symptomTotal() > emergencyThreshold) {
       if (!person.attributes.containsKey(LAST_VISIT_SYMPTOM_TOTAL)) {
         person.attributes.put(LAST_VISIT_SYMPTOM_TOTAL, 0);
       }
@@ -121,7 +157,7 @@ public final class EncounterModule extends Module {
         person.attributes.put(ACTIVE_EMERGENCY_ENCOUNTER, true);
         startedEncounter = true;
       }
-    } else if (person.symptomTotal() > URGENT_CARE_SYMPTOM_THRESHOLD) {
+    } else if (person.symptomTotal() > urgentCareThreshold) {
       if (!person.attributes.containsKey(LAST_VISIT_SYMPTOM_TOTAL)) {
         person.attributes.put(LAST_VISIT_SYMPTOM_TOTAL, 0);
       }
@@ -134,7 +170,7 @@ public final class EncounterModule extends Module {
         person.attributes.put(ACTIVE_URGENT_CARE_ENCOUNTER, true);
         startedEncounter = true;
       }
-    } else if (person.symptomTotal() > PCP_SYMPTOM_THRESHOLD) {
+    } else if (person.symptomTotal() > pcpThreshold) {
       if (!person.attributes.containsKey(LAST_VISIT_SYMPTOM_TOTAL)) {
         person.attributes.put(LAST_VISIT_SYMPTOM_TOTAL, 0);
       }
@@ -230,31 +266,32 @@ public final class EncounterModule extends Module {
     if (ageInYears <= 3) {
       int ageInMonths = person.ageInMonths(time);
       if (ageInMonths <= 1) {
-        interval = Utilities.convertTime("months", 1);
+        interval = Utilities.convertTime("months", wellnessMonthsUpTo1Month);
       } else if (ageInMonths <= 5) {
-        interval = Utilities.convertTime("months", 2);
+        interval = Utilities.convertTime("months", wellnessMonthsUpTo5Months);
       } else if (ageInMonths <= 17) {
-        interval = Utilities.convertTime("months", 3);
+        interval = Utilities.convertTime("months", wellnessMonthsUpTo17Months);
       } else {
-        interval = Utilities.convertTime("months", 6);
+        interval = Utilities.convertTime("months", wellnessMonthsUpTo3Years);
       }
     } else if (ageInYears <= 19) {
-      interval = Utilities.convertTime("years", 1);
+      interval = Utilities.convertTime("years", wellnessYears4To19);
     } else if (ageInYears <= 39) {
-      interval = Utilities.convertTime("years", 3);
+      interval = Utilities.convertTime("years", wellnessYears20To39);
     } else if (ageInYears <= 49) {
-      interval = Utilities.convertTime("years", 2);
+      interval = Utilities.convertTime("years", wellnessYears40To49);
     } else {
-      interval = Utilities.convertTime("years", 1);
+      interval = Utilities.convertTime("years", wellnessYears50Plus);
     }
 
     // If the patients has chronic medications, they need to see their
-    // provider at least once a year to get their medications renewed.
+    // provider at least once a year (by default) to get their medications renewed.
     // TODO: In the future, we need even more frequent wellness encounters
     // by condition: e.g. Diabetes every 3 months or 6 month; but
     // Contraception every 1 year.
-    if (hasChronicMeds && interval > Utilities.convertTime("years", 1)) {
-      interval = Utilities.convertTime("years", 1);
+    long chronicMax = Utilities.convertTime("years", wellnessChronicMedicationMaxYears);
+    if (hasChronicMeds && interval > chronicMax) {
+      interval = chronicMax;
     }
 
     return interval;
