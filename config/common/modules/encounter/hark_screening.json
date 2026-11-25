@@ -1,0 +1,17 @@
+{
+  "name": "hark_screening",
+  "remarks": [
+    "Replaces src/main/resources/modules/encounter/hark_screening.json (domestic abuse screening in the wellness visit) with a module that does nothing. Load it with -d config/common/modules.",
+    "The original only writes output (a screening procedure, the HARK report and the finding Victim of intimate partner abuse) and sets one attribute that nothing reads. About 38% of patients ended up labelled as victims over a lifetime, and routine abuse screening is not part of Greek or Albanian primary care. The wellness encounter module calls it as a submodule, and an empty module is a valid submodule."
+  ],
+  "states": {
+    "Initial": {
+      "type": "Initial",
+      "direct_transition": "Terminal"
+    },
+    "Terminal": {
+      "type": "Terminal"
+    }
+  },
+  "gmf_version": 2
+}

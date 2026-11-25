@@ -1,0 +1,17 @@
+{
+  "name": "SDoH HRSN",
+  "remarks": [
+    "Replaces src/main/resources/modules/encounter/sdoh_hrsn.json (the PRAPARE social needs screening of the wellness visits) with a module that does nothing. Load it with -d config/common/modules.",
+    "The original only writes output: the PRAPARE questionnaire, the screening procedure and 20 findings (employment, education, housing, transport, stress, social isolation and others), from attributes set elsewhere. It sets 19 attributes of its own (prapare_*, household_size) and no other module or Java code reads them or the findings. The wellness encounter module and hiv/hiv_baseline call it as a submodule, and an empty module is a valid submodule."
+  ],
+  "states": {
+    "Initial": {
+      "type": "Initial",
+      "direct_transition": "Terminal"
+    },
+    "Terminal": {
+      "type": "Terminal"
+    }
+  },
+  "gmf_version": 2
+}

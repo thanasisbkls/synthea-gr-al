@@ -1,0 +1,17 @@
+{
+  "name": "Homelessness",
+  "remarks": [
+    "Replaces src/main/resources/modules/homelessness.json with a module that does nothing. Load it with -d config/common/modules.",
+    "The original draws each person's homelessness from United States statistics (HUD 2016, about 0.18% per year, repeated over a whole lifetime): 16.7% of patients were homeless at some point. It wrote a shelter encounter, a procedure, observations (including HIV status, sexual orientation and an abuse status) and the finding Homeless. The only other module that reads its output is covid19/determine_risk (homelessness_category, a marginal COVID risk factor); without the attribute a person is simply not homeless."
+  ],
+  "states": {
+    "Initial": {
+      "type": "Initial",
+      "direct_transition": "Terminal"
+    },
+    "Terminal": {
+      "type": "Terminal"
+    }
+  },
+  "gmf_version": 2
+}
