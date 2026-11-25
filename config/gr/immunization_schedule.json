@@ -1,0 +1,317 @@
+{
+  "hepb": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "08",
+      "display": "Hep B, adolescent or pediatric"
+    },
+    "remark": "ECDC general: 2, 4 and 6-18 months. The birth dose is only for babies of HBsAg-positive or unknown-status mothers (risk group), so it is not scheduled. Available from 2000: WHO immunization data portal, vaccine introduction data (Greece, hepatitis B, first year \"Yes\").",
+    "at_months": [
+      2,
+      4,
+      6
+    ],
+    "first_available": 2000
+  },
+  "rotavirus": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "122",
+      "display": "rotavirus, unspecified formulation"
+    },
+    "remark": "Both rotavirus vaccines are in the Greek programme: RV1 (2 doses, months 2 and 4) and RV5 (3 doses, months 2, 4, 6) (ECDC footnote; WHO immunization data portal, vaccine schedule data (2025 snapshot)); no usage split was found. The generic code and the two doses common to both are used. Available from 2011: WHO immunization data portal, vaccine introduction data (Greece, rotavirus).",
+    "at_months": [
+      2,
+      4
+    ],
+    "first_available": 2011
+  },
+  "dtap": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "20",
+      "display": "DTaP"
+    },
+    "remark": "ECDC general: 2, 4, 6, 15-18 months and 4-6 years. Available from 2002: WHO immunization data portal, vaccine introduction data (Greece, acellular pertussis).",
+    "at_months": [
+      2,
+      4,
+      6,
+      15,
+      48
+    ],
+    "first_available": 2002
+  },
+  "hib": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "48",
+      "display": "Hib (PRP-T)"
+    },
+    "remark": "ECDC general: 2, 4, 6 and 15-18 months. Available from 2000: WHO immunization data portal, vaccine introduction data (Greece, Hib).",
+    "at_months": [
+      2,
+      4,
+      6,
+      15
+    ],
+    "first_available": 2000
+  },
+  "pcv": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "152",
+      "display": "Pneumococcal Conjugate, unspecified formulation"
+    },
+    "remark": "ECDC: PCV15 or PCV20 at 2, 4 and 12 months; the generic CVX code covers both. Available from 2006: WHO immunization data portal, vaccine introduction data (Greece, PCV).",
+    "at_months": [
+      2,
+      4,
+      12
+    ],
+    "first_available": 2006
+  },
+  "pcv20": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "216",
+      "display": "Pneumococcal conjugate PCV20, polysaccharide CRM197 conjugate, adjuvant, PF"
+    },
+    "remark": "ECDC general: PCV20 from 65 years. Available from 2023: Greek Ministry of Health update of 7 February 2023 recommending PCV20 for adults 65+ (as reported in Frontiers in Public Health, 2023).",
+    "at_months": [
+      780
+    ],
+    "first_available": 2023
+  },
+  "ipv": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "10",
+      "display": "IPV"
+    },
+    "remark": "ECDC general: 2, 4, 6-18 months, 4-6 years, and the 18-25 year booster (Tdap-IPV). Available from 2003: WHO immunization data portal, vaccine introduction data (Greece, IPV).",
+    "at_months": [
+      2,
+      4,
+      6,
+      48,
+      216
+    ],
+    "first_available": 2003
+  },
+  "flu": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "140",
+      "display": "Influenza, split virus, trivalent, PF"
+    },
+    "remark": "ECDC general: yearly from 60 years. Available from 2007: WHO immunization data portal, vaccine introduction data (Greece, seasonal influenza).",
+    "at_months": [
+      720,
+      732,
+      744,
+      756,
+      768,
+      780,
+      792,
+      804,
+      816,
+      828,
+      840,
+      852,
+      864,
+      876,
+      888,
+      900,
+      912,
+      924,
+      936,
+      948,
+      960,
+      972,
+      984,
+      996,
+      1008,
+      1020,
+      1032,
+      1044,
+      1056,
+      1068,
+      1080,
+      1092,
+      1104,
+      1116,
+      1128,
+      1140,
+      1152,
+      1164,
+      1176,
+      1188,
+      1200
+    ],
+    "first_available": 2007
+  },
+  "flu_child": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "161",
+      "display": "Influenza, injectable,quadrivalent, preservative free, pediatric"
+    },
+    "remark": "ECDC footnote: flu vaccination is recommended to all children 6 months to 5 years since 2024. The pediatric formulation code is used for children.",
+    "at_months": [
+      6,
+      18,
+      30,
+      42,
+      54
+    ],
+    "first_available": 2024
+  },
+  "mmr": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "03",
+      "display": "MMR"
+    },
+    "remark": "ECDC general: 12-15 months and 2-3 years (2017 temporary recommendation). Available from 1995: WHO immunization data portal, vaccine introduction data (Greece, mumps, rubella and second measles dose all from 1995).",
+    "at_months": [
+      12,
+      24
+    ],
+    "first_available": 1995
+  },
+  "var": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "21",
+      "display": "varicella"
+    },
+    "remark": "ECDC general: 12-15 months and 2-3 years. Available from 2008: WHO immunization data portal, vaccine introduction data (Greece, varicella).",
+    "at_months": [
+      12,
+      24
+    ],
+    "first_available": 2008
+  },
+  "hepa": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "83",
+      "display": "Hep A, ped/adol, 2 dose"
+    },
+    "remark": "WHO immunization data portal, vaccine schedule data (2025 snapshot), Greece: dose 1 at 2-6 years and dose 2 six months later (general); ECDC shows one window for the first dose. Available from 2017: WHO immunization data portal, vaccine introduction data (Greece, hepatitis A: regional from 2007, national from 2017).",
+    "at_months": [
+      24,
+      30
+    ],
+    "first_available": 2017
+  },
+  "men_b": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "163",
+      "display": "meningococcal B, OMV"
+    },
+    "remark": "ECDC general: 2-3, 4-5 and 12-15 months (MenB-4C infant schedule). Available from 2024: inferred: a 2024 ISPOR abstract still describes MenB as high-risk only and the Ministry of Health published a rationale for infant MenB vaccination on 7 August 2024; WHO lists it as routine in 2025.",
+    "at_months": [
+      2,
+      4,
+      12
+    ],
+    "first_available": 2024
+  },
+  "men_c": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "103",
+      "display": "meningococcal C conjugate"
+    },
+    "remark": "ECDC footnote: 1 dose of MenC at 10 months. Available from 2014: WHO immunization data portal, vaccine introduction data (Greece, meningococcal vaccines, any strain).",
+    "at_months": [
+      10
+    ],
+    "first_available": 2014
+  },
+  "men": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "114",
+      "display": "meningococcal MCV4P"
+    },
+    "remark": "ECDC general: MenACWY at 11-12 years. Available from 2014: WHO immunization data portal, vaccine introduction data (Greece, meningococcal vaccines, any strain).",
+    "at_months": [
+      132
+    ],
+    "first_available": 2014
+  },
+  "tdap": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "115",
+      "display": "Tdap"
+    },
+    "remark": "ECDC general: 11-12 years, and a booster at 18-25 years. Available from 2002: WHO immunization data portal, vaccine introduction data (Greece, acellular pertussis from 2002); the year of the adolescent and adult Tdap was not found.",
+    "at_months": [
+      132,
+      216
+    ],
+    "first_available": 2002
+  },
+  "td": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "113",
+      "display": "Td (adult), 5 Lf tetanus toxoid, preservative free, adsorbed"
+    },
+    "remark": "ECDC footnote: after the 18-25 year booster, Td or Tdap every 10 years. Available from 2002: earliest year of the Greek diphtheria-tetanus booster in the WHO data; no introduction year found.",
+    "at_months": [
+      336,
+      456,
+      576,
+      696,
+      816,
+      936,
+      1056,
+      1176
+    ],
+    "first_available": 2002
+  },
+  "hpv": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "165",
+      "display": "HPV9"
+    },
+    "remark": "ECDC general: 9-11 years, 2-dose scheme with a 6-month interval (footnote 19). Available from 2009: WHO immunization data portal, vaccine introduction data (Greece, HPV; the vaccine was not the 9-valent one at first, and girls only until the 2022 recommendation for boys and girls, neither of which is modelled).",
+    "at_months": [
+      108,
+      114
+    ],
+    "first_available": 2009
+  },
+  "zoster": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "187",
+      "display": "zoster vaccine recombinant"
+    },
+    "remark": "WHO immunization data portal, vaccine schedule data (2025 snapshot), Greece: dose 1 from 60 years, dose 2 two to six months later (the start of that range is used). Available from 2023: Greek National Vaccination Committee rationale for herpes zoster vaccination, July 2023 (Ministry of Health); the recombinant vaccine was authorised in the EU on 21 March 2018 (EMA).",
+    "at_months": [
+      720,
+      722
+    ],
+    "first_available": 2023
+  },
+  "rsv": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "314",
+      "display": "Respiratory syncytial virus (RSV) vaccine, unspecified"
+    },
+    "remark": "Greek National Vaccination Committee, September 2024: one dose, no booster, for everyone aged 75 and over (also for people 60+ with listed risk conditions, which is not modelled); it names two products (Arexvy, Abrysvo) without choosing one, so the generic CVX code is used. ECDC lists RSV as a general recommendation from 75 years. Available from 2025: WHO immunization data portal, vaccine introduction data (Greece, RSV immunization strategy first \"Yes\" in 2025; the committee's rationale dates from 2024).",
+    "at_months": [
+      900
+    ],
+    "first_available": 2025
+  }
+}

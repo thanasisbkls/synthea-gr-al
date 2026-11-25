@@ -1,0 +1,157 @@
+{
+  "bcg": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "19",
+      "display": "BCG"
+    },
+    "remark": "Albanian calendar (ISHP, October 2022): at birth. Available from 1960: the vaccination programme in Albania was established in 1960 and BCG was produced locally (Epidemiology, Biostatistics and Public Health article on adverse events following immunization in Albanian children).",
+    "at_months": [
+      0
+    ],
+    "first_available": 1960
+  },
+  "hepb": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "08",
+      "display": "Hep B, adolescent or pediatric"
+    },
+    "remark": "Albanian calendar: at birth. Available from 1998: WHO immunization data portal, vaccine introduction data (Albania, hepatitis B birth dose).",
+    "at_months": [
+      0
+    ],
+    "first_available": 1998
+  },
+  "penta": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "198",
+      "display": "DTP-hepB-Hib Pentavalent Non-US"
+    },
+    "remark": "Albanian calendar: DTP-HepB-Hib at 2, 4 and 6 months. Available from 2009: WHO immunization data portal, vaccine introduction data (Albania, Hib, which Albania gives in the pentavalent vaccine).",
+    "at_months": [
+      2,
+      4,
+      6
+    ],
+    "first_available": 2009
+  },
+  "ipv": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "10",
+      "display": "IPV"
+    },
+    "remark": "WHO immunization data portal, vaccine schedule data (2025 snapshot), Albania: IPV at 2 and 4 months only (the 2 and 6 year doses are OPV, see bopv). Available from 2014: WHO immunization data portal, vaccine introduction data (Albania, IPV).",
+    "at_months": [
+      2,
+      4
+    ],
+    "first_available": 2014
+  },
+  "bopv": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "178",
+      "display": "OPV bivalent"
+    },
+    "remark": "Albanian calendar: bOPV at 6 months and IPV/bOPV at 2 and 6 years; WHO immunization data portal, vaccine schedule data (2025 snapshot), Albania: OPV at 6 months, 2 years and 6 years. Available from 1960: OPV was part of the programme from its start in 1960 and was imported (Epidemiology, Biostatistics and Public Health article on adverse events following immunization in Albanian children); earlier OPV formulations are not distinguished.",
+    "at_months": [
+      6,
+      24,
+      72
+    ],
+    "first_available": 1960
+  },
+  "rota": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "116",
+      "display": "rotavirus, pentavalent"
+    },
+    "remark": "Albanian calendar: Rota-1, 2 and 3 at 2, 4 and 6 months; WHO immunization data portal, vaccine schedule data (2025 snapshot), Albania: 3-dose pentavalent rotavirus vaccine (RV5). Available from 2019: WHO immunization data portal, vaccine introduction data (Albania, rotavirus).",
+    "at_months": [
+      2,
+      4,
+      6
+    ],
+    "first_available": 2019
+  },
+  "pcv": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "152",
+      "display": "Pneumococcal Conjugate, unspecified formulation"
+    },
+    "remark": "Albanian calendar: PCV at 2, 4 and 12 months. Available from 2011: WHO immunization data portal, vaccine introduction data (Albania, PCV).",
+    "at_months": [
+      2,
+      4,
+      12
+    ],
+    "first_available": 2011
+  },
+  "dtp": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "01",
+      "display": "DTP"
+    },
+    "remark": "Albanian calendar: DTP at 2 years. Available from 1960: DTP was produced locally from the start of the programme in 1960 (same article).",
+    "at_months": [
+      24
+    ],
+    "first_available": 1960
+  },
+  "mmr": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "03",
+      "display": "MMR"
+    },
+    "remark": "Albanian calendar: FRP (measles, rubella, mumps) at 12 months and 5 years. Available from 2005: WHO immunization data portal, vaccine introduction data (Albania, mumps 2005; measles and rubella second doses from 2001).",
+    "at_months": [
+      12,
+      60
+    ],
+    "first_available": 2005
+  },
+  "dt": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "28",
+      "display": "DT (pediatric)"
+    },
+    "remark": "Albanian calendar: DT at 6 years. Available from 1960: programme start in 1960; no vaccine-specific year found.",
+    "at_months": [
+      72
+    ],
+    "first_available": 1960
+  },
+  "hpv": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "137",
+      "display": "HPV, unspecified formulation"
+    },
+    "remark": "Albanian calendar: HPV at 13 years. Available from 2022: WHO immunization data portal, vaccine introduction data (Albania, HPV).",
+    "at_months": [
+      156
+    ],
+    "first_available": 2022
+  },
+  "td": {
+    "code": {
+      "system": "http://hl7.org/fhir/sid/cvx",
+      "code": "113",
+      "display": "Td (adult), 5 Lf tetanus toxoid, preservative free, adsorbed"
+    },
+    "remark": "Albanian calendar: Td at 13 years and at 18-19 years. Available from 1960: programme start in 1960; no vaccine-specific year found.",
+    "at_months": [
+      156,
+      216
+    ],
+    "first_available": 1960
+  }
+}

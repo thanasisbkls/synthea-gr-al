@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.mitre.synthea.helpers.Attributes;
 import org.mitre.synthea.helpers.Attributes.Inventory;
+import org.mitre.synthea.helpers.Config;
 import org.mitre.synthea.helpers.Utilities;
 import org.mitre.synthea.world.agents.Person;
 import org.mitre.synthea.world.concepts.HealthRecord;
@@ -38,9 +39,12 @@ public class Immunizations {
 
   @SuppressWarnings("rawtypes")
   private static Map loadImmunizationSchedule() {
-    String filename = "immunization_schedule.json";
+    // `generate.immunization.schedule.default_file` selects another schedule, for example a
+    // country's national schedule; it can be a resource name or a file path
+    String filename = Config.get("generate.immunization.schedule.default_file",
+        "immunization_schedule.json");
     try {
-      String json = Utilities.readResource(filename);
+      String json = Utilities.readResourceOrPath(filename);
       Gson g = new Gson();
       return g.fromJson(json, HashMap.class);
     } catch (Exception e) {
