@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.mitre.synthea.engine.Module;
 import org.mitre.synthea.helpers.Attributes;
 import org.mitre.synthea.helpers.Attributes.Inventory;
+import org.mitre.synthea.helpers.Config;
 import org.mitre.synthea.helpers.Utilities;
 import org.mitre.synthea.modules.calculators.ASCVD;
 import org.mitre.synthea.modules.calculators.Framingham;
@@ -65,6 +66,39 @@ public final class CardiovascularDiseaseModule extends Module {
   /** TODO: make this a config parameter for which risk system we want to use. */
   private static boolean useFramingham = false;
 
+  /**
+   * Factor applied to the monthly risk of a myocardial infarction (mi_risk). The risk equations
+   * come from United States cohorts; 1 keeps them, a smaller value recalibrates them to a
+   * population with fewer events.
+   */
+  private static final double MI_RISK_FACTOR =
+      Config.getAsDouble("lifecycle.cardiovascular.mi_risk_factor", 1.0);
+
+  /**
+   * Factor applied to the monthly risk of stable ischemic heart disease (ihd_risk), which leads to
+   * angiography, stents and bypass surgery. 1 keeps the built-in risk.
+   */
+  private static final double IHD_RISK_FACTOR =
+      Config.getAsDouble("lifecycle.cardiovascular.ihd_risk_factor", 1.0);
+
+  /**
+   * Store the monthly risks of a myocardial infarction and of ischemic heart disease.
+   *
+   * @param person the person
+   * @param monthlyRisk the monthly risk of a myocardial infarction from the risk equation
+   * @param miFactor the factor for mi_risk
+   * @param ihdFactor the factor for ihd_risk
+   */
+  static void storeMonthlyRisks(Person person, double monthlyRisk, double miFactor,
+      double ihdFactor) {
+    person.attributes.put("mi_risk", Math.min(1.0, monthlyRisk * miFactor));
+    // drives the myocardial_infarction module
+
+    // multiply by 5 to account for the relative prevalence of the various outcomes
+    person.attributes.put("ihd_risk", Math.min(1.0, monthlyRisk * 5 * ihdFactor));
+    // drives the stable_ischemic_heart_disease module
+  }
+
   /** Ten years in milliseconds. */
   private static final long tenYearsInMS = TimeUnit.DAYS.toMillis(3650);
 
@@ -87,12 +121,7 @@ public final class CardiovascularDiseaseModule extends Module {
 
     double monthlyRisk =
         Utilities.convertRiskToTimestep(framinghamRisk, tenYearsInMS, oneMonthInMS);
-    person.attributes.put("mi_risk", monthlyRisk);
-    // drives the myocardial_infarction module
-
-    person.attributes.put("ihd_risk", monthlyRisk * 5);
-    // drives the stable_ischemic_heart_disease module
-    // multiply by 5 to account for the relative prevalence of the various outcomes
+    storeMonthlyRisks(person, monthlyRisk, MI_RISK_FACTOR, IHD_RISK_FACTOR);
   }
 
   /**
@@ -109,12 +138,7 @@ public final class CardiovascularDiseaseModule extends Module {
     person.attributes.put("cardio_risk", timestepRisk);
 
     double monthlyRisk = Utilities.convertRiskToTimestep(ascvdRisk, tenYearsInMS, oneMonthInMS);
-    person.attributes.put("mi_risk", monthlyRisk);
-    // drives the myocardial_infarction module
-
-    person.attributes.put("ihd_risk", monthlyRisk * 5);
-    // drives the stable_ischemic_heart_disease module
-    // multiply by 5 to account for the relative prevalence of the various outcomes
+    storeMonthlyRisks(person, monthlyRisk, MI_RISK_FACTOR, IHD_RISK_FACTOR);
   }
 
   /**
