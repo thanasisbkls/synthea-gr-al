@@ -471,6 +471,37 @@ public final class LifecycleModule extends Module {
   private static final double[] ADULT_WEIGHT_GAIN_RANGE =
       BiometricsConfig.doubles("lifecycle.adult_weight_gain");
 
+  /**
+   * When true, each person draws one yearly weight gain from the range and keeps it, so people
+   * differ lastingly (some gain little, some a lot). When false (the default of biometrics.yml,
+   * "yearly"), the gain is drawn again every year, which averages out over the years.
+   */
+  private static final boolean ADULT_WEIGHT_GAIN_PER_PERSON =
+      "person".equals(BiometricsConfig.get("lifecycle.adult_weight_gain_mode", "yearly"));
+
+  /** Attribute holding the yearly adult weight gain of a person (kg), drawn once. */
+  static final String ADULT_WEIGHT_GAIN_RATE = "adult_weight_gain_rate";
+
+  /**
+   * The weight a person gains this year as an adult.
+   *
+   * @param person the person
+   * @param perPerson draw the rate once per person and keep it, instead of every year
+   * @param range the range of yearly gains in kilograms
+   * @return the gain in kilograms
+   */
+  static double adultWeightGain(Person person, boolean perPerson, double[] range) {
+    if (!perPerson) {
+      return person.rand(range);
+    }
+    Object rate = person.attributes.get(ADULT_WEIGHT_GAIN_RATE);
+    if (rate == null) {
+      rate = person.rand(range);
+      person.attributes.put(ADULT_WEIGHT_GAIN_RATE, rate);
+    }
+    return (double) rate;
+  }
+
   private static final double[] GERIATRIC_WEIGHT_LOSS_RANGE =
       BiometricsConfig.doubles("lifecycle.geriatric_weight_loss");
 
@@ -545,7 +576,8 @@ public final class LifecycleModule extends Module {
       if (weightManagement != null && ! (boolean) weightManagement) {
         if (age <= ADULT_MAX_WEIGHT_AGE) {
           // getting older and fatter
-          double adultWeightGain = person.rand(ADULT_WEIGHT_GAIN_RANGE);
+          double adultWeightGain = adultWeightGain(person, ADULT_WEIGHT_GAIN_PER_PERSON,
+              ADULT_WEIGHT_GAIN_RANGE);
           weight += adultWeightGain;
         } else if (age >= GERIATRIC_WEIGHT_LOSS_AGE) {
           // getting older and wasting away

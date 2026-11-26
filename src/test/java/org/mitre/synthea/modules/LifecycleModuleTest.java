@@ -142,4 +142,31 @@ public class LifecycleModuleTest {
     }
     Assert.assertTrue("Expected at least some passports to be issued", issued > 0);
   }
+
+  @Test
+  public void testAdultWeightGainYearlyIsUnchanged() {
+    double[] range = {1.0, 2.0};
+    Person person = new Person(7L);
+    Person reference = new Person(7L);
+    for (int i = 0; i < 5; i++) {
+      assertEquals(reference.rand(range), LifecycleModule.adultWeightGain(person, false, range),
+          0.0);
+    }
+    Assert.assertNull(person.attributes.get(LifecycleModule.ADULT_WEIGHT_GAIN_RATE));
+  }
+
+  @Test
+  public void testAdultWeightGainPerPersonIsDrawnOnce() {
+    double[] range = {0.0, 2.0};
+    Person person = new Person(7L);
+    double first = LifecycleModule.adultWeightGain(person, true, range);
+    Assert.assertTrue(first >= 0.0 && first <= 2.0);
+    for (int i = 0; i < 5; i++) {
+      assertEquals(first, LifecycleModule.adultWeightGain(person, true, range), 0.0);
+    }
+    // same seed, same rate; another seed, another rate
+    assertEquals(first, LifecycleModule.adultWeightGain(new Person(7L), true, range), 0.0);
+    Assert.assertNotEquals(first, LifecycleModule.adultWeightGain(new Person(8L), true, range),
+        0.0);
+  }
 }

@@ -1,0 +1,10 @@
+# Replaces keys of src/main/resources/biometrics.yml (generate.biometrics.override_file).
+# Adult weight: each person draws one yearly gain from the range and keeps it (the upstream file
+# draws it again every year, so everybody ends up with a similar BMI and the spread is too narrow).
+# The range and the loss after 60 were set so that adults reach about 63% with BMI 25 or more and
+# a spread (sd) of about 4, close to the measured shares of Greece and Albania (WHO, 2024); obesity
+# stays lower than the WHO figure (see LOCALIZATION_LOG.md).
+lifecycle:
+  adult_weight_gain_mode: person
+  adult_weight_gain: [0.0, 1.0]     # kilograms per year, up to age 49
+  geriatric_weight_loss: [0.3, 0.6] # kilograms per year, from age 60

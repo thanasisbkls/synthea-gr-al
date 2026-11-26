@@ -2,6 +2,7 @@ package org.mitre.synthea.world.concepts;
 
 import java.util.List;
 
+import org.mitre.synthea.helpers.Config;
 import org.mitre.synthea.helpers.SimpleYML;
 import org.mitre.synthea.helpers.Utilities;
 
@@ -17,6 +18,57 @@ public abstract class BiometricsConfig {
    * The SimpleYML containing the parsed 'biometrics.yml' file.
    */
   private static final SimpleYML biometrics = loadYML();
+
+  /**
+   * Property naming an optional YML file whose values replace those of 'biometrics.yml'. Only the
+   * keys that differ need to be in it. Empty or unset means 'biometrics.yml' is used as it is.
+   */
+  public static final String OVERRIDE_PROPERTY = "generate.biometrics.override_file";
+
+  /**
+   * The parsed override file, or null if the property is empty.
+   */
+  private static final SimpleYML override = loadOverride(Config.get(OVERRIDE_PROPERTY, ""));
+
+  /**
+   * Load the override file.
+   *
+   * @param path path of the file (a resource or a path on the filesystem), or empty
+   * @return the parsed file, or null if the path is empty
+   */
+  static SimpleYML loadOverride(String path) {
+    if (path == null || path.trim().isEmpty()) {
+      return null;
+    }
+    try {
+      return new SimpleYML(Utilities.readResource(path.trim(), true, true));
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Unable to read biometrics override file " + path, e);
+    }
+  }
+
+  /**
+   * Get the object at the path from the override file if it has one, otherwise from the base.
+   *
+   * @param path path to the desired object
+   * @param overrideYml the override file, or null
+   * @param base the base file
+   * @return the object at path, or null
+   */
+  static Object lookup(String path, SimpleYML overrideYml, SimpleYML base) {
+    if (overrideYml != null) {
+      Object value;
+      try {
+        value = overrideYml.get(path);
+      } catch (NullPointerException e) {
+        value = null; // a parent key is missing from the override file
+      }
+      if (value != null) {
+        return value;
+      }
+    }
+    return base.get(path);
+  }
 
   /**
    * Load the 'biometrics.yml' resource file.
@@ -51,7 +103,7 @@ public abstract class BiometricsConfig {
    * @return the object at path
    */
   public static Object get(String path) {
-    return biometrics.get(path);
+    return lookup(path, override, biometrics);
   }
 
   /**
