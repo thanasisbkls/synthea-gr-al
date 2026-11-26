@@ -1,0 +1,62 @@
+{
+  "name": "Opioid Addiction",
+  "remarks": [
+    "Replaces src/main/resources/modules/opioid_addiction.json. Load it with -d config/common/modules.",
+    "The original models the United States opioid crisis from 1990 to 2014: directed use after a prescription, misuse, addiction, overdose, detoxification and treatment, with risks by socioeconomic category. In a Greek run it had a share of 28% of the opioid prescriptions, and with the chronic pain module 5.6% of patients had an overdose (Greece: 0.03% of deaths from drug dependence, Eurostat 2022).",
+    "The other modules (injuries, surgery, cancer pain, heart attack) give opioids for acute and terminal pain and assign them to the attribute opioid_prescription; they rely on this module to end the prescription and to clear the attribute, otherwise nobody can be prescribed an opioid a second time. This copy does only that: after the prescription it ends the medication with the original weekly chance of 23.81% (a mean of about 4 weeks) and clears the attribute. There is no date guard (the original stopped in 2014, after which the attribute was never cleared), no misuse, no addiction and no overdose."
+  ],
+  "states": {
+    "Initial": {
+      "type": "Initial",
+      "direct_transition": "General_Population"
+    },
+    "General_Population": {
+      "type": "Delay",
+      "exact": {
+        "quantity": 1,
+        "unit": "weeks"
+      },
+      "conditional_transition": [
+        {
+          "condition": {
+            "condition_type": "Attribute",
+            "attribute": "opioid_prescription",
+            "operator": "is not nil"
+          },
+          "transition": "Directed_Use"
+        },
+        {
+          "transition": "General_Population"
+        }
+      ]
+    },
+    "Directed_Use": {
+      "type": "Delay",
+      "exact": {
+        "quantity": 1,
+        "unit": "weeks"
+      },
+      "distributed_transition": [
+        {
+          "distribution": 0.2381,
+          "transition": "End_Prescription"
+        },
+        {
+          "distribution": 0.7619,
+          "transition": "Directed_Use"
+        }
+      ]
+    },
+    "End_Prescription": {
+      "type": "MedicationEnd",
+      "referenced_by_attribute": "opioid_prescription",
+      "direct_transition": "Reset_Opioid_Prescription"
+    },
+    "Reset_Opioid_Prescription": {
+      "type": "SetAttribute",
+      "attribute": "opioid_prescription",
+      "direct_transition": "General_Population"
+    }
+  },
+  "gmf_version": 1
+}
