@@ -1,0 +1,17 @@
+{
+  "name": "Veteran",
+  "remarks": [
+    "Replaces src/main/resources/modules/veteran.json with a module that does nothing. Load it with -d config/common/modules.",
+    "The original sets the attribute veteran for part of the population from United States census statistics (ACS 2016): 57% of men over 75 as World War II veterans, then the Korean, Vietnam and Gulf wars, with higher shares for men than women. Every other veteran module (veteran_mdd, veteran_ptsd, veteran_lung_cancer, veteran_prostate_cancer, veteran_hyperlipidemia, veteran_self_harm, veteran_substance_abuse_conditions, veteran_substance_abuse_treatment, veterans/veteran_suicide_probabilities) starts with a guard on that attribute, and the modules chronic_kidney_disease, metabolic_syndrome_disease, osteoarthritis and mTBI take their veteran branch only when it is set; without it a person takes the ordinary branch, as the people of this project do. Greek and Albanian conscript service and the wars of these countries are not the US wars, and no source for the shares was used."
+  ],
+  "states": {
+    "Initial": {
+      "type": "Initial",
+      "direct_transition": "Terminal"
+    },
+    "Terminal": {
+      "type": "Terminal"
+    }
+  },
+  "gmf_version": 1
+}
