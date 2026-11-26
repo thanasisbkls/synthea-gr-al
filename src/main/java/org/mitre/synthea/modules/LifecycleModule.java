@@ -1,5 +1,6 @@
 package org.mitre.synthea.modules;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -1046,11 +1047,11 @@ public final class LifecycleModule extends Module {
   }
 
   /**
-   * Function that determines the probability of death based on age.
+   * The yearly risk of death by natural causes by age that is built in (United States).
    * @param age the age of the person in years.
    * @return the probability of death in the next year.
    */
-  protected static double likelihoodOfDeath(int age) {
+  static double usYearlyRisk(int age) {
     double yearlyRisk;
 
     if (age < 1) {
@@ -1078,6 +1079,89 @@ public final class LifecycleModule extends Module {
     } else {
       yearlyRisk = 50_000.0 / 100_000.0;
     }
+
+    return yearlyRisk;
+  }
+
+  /**
+   * Yearly risks of death by natural causes by age band, read from a CSV file. The columns are
+   * min_age, max_age (both included) and deaths_per_100000 (per person-year). An age after the
+   * last band gets the risk of the last band.
+   */
+  static class DeathRisks {
+    private final int[] minAges;
+    private final int[] maxAges;
+    private final double[] risks;
+
+    DeathRisks(String csv) {
+      List<int[]> bands = new ArrayList<>();
+      List<Double> values = new ArrayList<>();
+      String[] lines = csv.split("\\r?\\n");
+      if (lines.length == 0 || !lines[0].trim().replace(" ", "")
+          .equals("min_age,max_age,deaths_per_100000")) {
+        throw new IllegalArgumentException(
+            "The death risk file must start with min_age,max_age,deaths_per_100000");
+      }
+      for (int i = 1; i < lines.length; i++) {
+        if (lines[i].trim().isEmpty()) {
+          continue;
+        }
+        String[] cells = lines[i].split(",");
+        int min = Integer.parseInt(cells[0].trim());
+        int max = Integer.parseInt(cells[1].trim());
+        double perHundredThousand = Double.parseDouble(cells[2].trim());
+        if (min > max || perHundredThousand < 0 || perHundredThousand > 100_000
+            || (!bands.isEmpty() && min != bands.get(bands.size() - 1)[1] + 1)) {
+          throw new IllegalArgumentException("Bad row in the death risk file: " + lines[i]);
+        }
+        if (bands.isEmpty() && min != 0) {
+          throw new IllegalArgumentException("The death risk file must start at age 0");
+        }
+        bands.add(new int[] {min, max});
+        values.add(perHundredThousand / 100_000.0);
+      }
+      if (bands.isEmpty()) {
+        throw new IllegalArgumentException("The death risk file has no rows");
+      }
+      minAges = bands.stream().mapToInt(x -> x[0]).toArray();
+      maxAges = bands.stream().mapToInt(x -> x[1]).toArray();
+      risks = values.stream().mapToDouble(Double::doubleValue).toArray();
+    }
+
+    double yearlyRisk(int age) {
+      for (int i = 0; i < minAges.length; i++) {
+        if (age >= minAges[i] && age <= maxAges[i]) {
+          return risks[i];
+        }
+      }
+      return risks[risks.length - 1];
+    }
+  }
+
+  /** Property naming the CSV of yearly death risks by age. Empty keeps the built-in US risks. */
+  public static final String DEATH_RISK_PROPERTY = "lifecycle.death_risk_file";
+
+  private static final DeathRisks DEATH_RISKS = loadDeathRisks();
+
+  private static DeathRisks loadDeathRisks() {
+    String path = Config.get(DEATH_RISK_PROPERTY, "");
+    if (path == null || path.trim().isEmpty()) {
+      return null;
+    }
+    try {
+      return new DeathRisks(Utilities.readResource(path.trim(), true, true));
+    } catch (java.io.IOException e) {
+      throw new IllegalArgumentException("Unable to read death risk file " + path, e);
+    }
+  }
+
+  /**
+   * Function that determines the probability of death based on age.
+   * @param age the age of the person in years.
+   * @return the probability of death in the next year.
+   */
+  protected static double likelihoodOfDeath(int age) {
+    double yearlyRisk = DEATH_RISKS != null ? DEATH_RISKS.yearlyRisk(age) : usYearlyRisk(age);
 
     double oneYearInMs = TimeUnit.DAYS.toMillis(365);
     double adjustedRisk = Utilities.convertRiskToTimestep(yearlyRisk, oneYearInMs);

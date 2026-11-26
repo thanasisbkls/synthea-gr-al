@@ -2,6 +2,7 @@ package org.mitre.synthea.modules;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.junit.AfterClass;
@@ -168,5 +169,43 @@ public class LifecycleModuleTest {
     assertEquals(first, LifecycleModule.adultWeightGain(new Person(7L), true, range), 0.0);
     Assert.assertNotEquals(first, LifecycleModule.adultWeightGain(new Person(8L), true, range),
         0.0);
+  }
+
+  @Test
+  public void testBuiltInDeathRisksAreUnchanged() {
+    // no death risk file is set in the test configuration: the built-in United States risks
+    double yearly = LifecycleModule.usYearlyRisk(80);
+    assertEquals(4877.3 / 100_000.0, yearly, 1e-12);
+    double expected = Utilities.convertRiskToTimestep(yearly, TimeUnit.DAYS.toMillis(365));
+    assertEquals(expected, LifecycleModule.likelihoodOfDeath(80), 1e-12);
+    assertEquals(0.5, LifecycleModule.usYearlyRisk(100), 0.0);
+  }
+
+  @Test
+  public void testDeathRisksFromFile() {
+    LifecycleModule.DeathRisks risks = new LifecycleModule.DeathRisks(
+        "min_age,max_age,deaths_per_100000\n0,0,300\n1,64,50\n65,84,2000\n85,120,16000\n");
+    assertEquals(0.003, risks.yearlyRisk(0), 1e-12);
+    assertEquals(0.0005, risks.yearlyRisk(1), 1e-12);
+    assertEquals(0.0005, risks.yearlyRisk(64), 1e-12);
+    assertEquals(0.02, risks.yearlyRisk(65), 1e-12);
+    assertEquals(0.16, risks.yearlyRisk(90), 1e-12);
+    // after the last band: the risk of the last band
+    assertEquals(0.16, risks.yearlyRisk(150), 1e-12);
+  }
+
+  @Test
+  public void testDeathRiskFileIsChecked() {
+    String header = "min_age,max_age,deaths_per_100000\n";
+    for (String bad : new String[] {"", "age,risk\n0,0,5\n", header, header + "1,5,10\n",
+        header + "0,5,10\n7,9,10\n", header + "0,5,-1\n", header + "0,5,200000\n",
+        header + "5,2,10\n"}) {
+      try {
+        new LifecycleModule.DeathRisks(bad);
+        Assert.fail("Expected an exception for: " + bad);
+      } catch (IllegalArgumentException expected) {
+        // expected
+      }
+    }
   }
 }
