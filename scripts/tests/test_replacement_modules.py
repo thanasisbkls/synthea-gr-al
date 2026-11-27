@@ -13,7 +13,7 @@ REPLACEMENTS = os.path.join(ROOT, "config", "common", "modules")
 BUILT_IN = os.path.join(ROOT, "src", "main", "resources", "modules")
 EMPTY = ["encounter/hark_screening.json", "encounter/sdoh_hrsn.json", "homelessness.json",
          "veteran.json", "med_rec.json", "encounter/substance_use_screening.json",
-         "encounter/anxiety_screening.json", "dental_and_oral_examination.json"]
+         "encounter/anxiety_screening.json"]
 OPIOID_ADDICTION = "opioid_addiction.json"
 OPIOID_CHRONIC = "prescribing_opioids_for_chronic_pain_and_treatment_of_oud.json"
 DIABETES = "metabolic_syndrome_disease.json"
@@ -25,9 +25,11 @@ LUNG_CANCER = "lung_cancer.json"
 KIDNEY = "chronic_kidney_disease.json"
 DIALYSIS = "dialysis.json"
 HEART_FAILURE = "congestive_heart_failure.json"
+DENTAL = "dental_and_oral_examination.json"
+WELLNESS = "wellness_encounters.json"
 EXPECTED = EMPTY + [OPIOID_ADDICTION, OPIOID_CHRONIC, DIABETES, OSTEOARTHRITIS, EPILEPSY,
                     INJURIES, COPD, LUNG_CANCER, KIDNEY, DIALYSIS,
-                    HEART_FAILURE]
+                    HEART_FAILURE, DENTAL, WELLNESS]
 # states of the chronic pain module that start an opioid prescription or an aberrant urine test
 OPIOID_ENTRIES = {"Enter_IR/SA_Opioid_Directed_Use_1", "Enter_IR/SA_Opioid_Directed_Use_2",
                   "Enter_ER/LA_Opioid_Directed_Use", "Urine_Drug_Testing_Aberrant_Positive_1",
@@ -420,6 +422,58 @@ class ReplacementModulesTest(unittest.TestCase):
                            ("outcome", "Dead within 28 days"), ("outcome", "Dead within 1 year")):
             self.assertLess(new[key][state], old[key][state], (key, state))
             self.assertGreater(new[key][state], 0, (key, state))
+
+    def test_the_dental_copy_only_clears_the_dental_referral(self):
+        module = load(os.path.join(REPLACEMENTS, DENTAL))
+        states = module["states"]
+        self.assertEqual({"Initial", "Wait for Dental Referral", "Reset Dental Referral"},
+                         set(states))
+        self.assertEqual("Wait for Dental Referral", states["Initial"]["direct_transition"])
+        wait = states["Wait for Dental Referral"]
+        self.assertEqual("Guard", wait["type"])
+        self.assertEqual("dental_referral", wait["allow"]["attribute"])
+        self.assertEqual("is not nil", wait["allow"]["operator"])
+        reset = states["Reset Dental Referral"]
+        self.assertEqual("SetAttribute", reset["type"])
+        self.assertEqual("dental_referral", reset["attribute"])
+        self.assertIsNone(reset["value"])
+        self.assertEqual("Wait for Dental Referral", reset["direct_transition"])
+        self.assertTrue(module.get("remarks"))
+        # nothing is written to the record
+        self.assertEqual({"Initial", "Guard", "SetAttribute"},
+                         {state["type"] for state in states.values()})
+
+    def test_every_module_that_waits_for_the_dental_referral_to_clear_is_known(self):
+        # these set dental_referral and then loop until it is nil again; only the dental module
+        # clears it, so a new upstream module of this kind must be seen (the loop never ends if
+        # the dental module is emptied)
+        waiting = set()
+        for root, _, files in os.walk(BUILT_IN):
+            for name in files:
+                if not name.endswith(".json"):
+                    continue
+                text = open(os.path.join(root, name), encoding="utf-8").read()
+                if '"attribute": "dental_referral"' in text and '"value_attribute"' in text:
+                    waiting.add(os.path.relpath(os.path.join(root, name), BUILT_IN))
+        self.assertEqual({"kidney_transplant.json", "bone_marrow_transplant.json",
+                          "heart/avrr/avrr_referral.json", "heart/avrr/preoperative.json",
+                          "injuries/broken_jaw.json"}, waiting)
+
+    def test_the_wellness_copy_only_skips_the_dental_referral(self):
+        original = load(os.path.join(BUILT_IN, WELLNESS))
+        copy = load(os.path.join(REPLACEMENTS, WELLNESS))
+        step = "Dental Referral?"
+        self.assertEqual(sorted(original["states"]), sorted(copy["states"]))
+        self.assertEqual(without(original, step), without(copy, step))
+        self.assertTrue(copy.get("remarks"))
+        self.assertEqual({"type": "Simple", "direct_transition": "End_Of_Wellness_Encounter"},
+                         copy["states"][step])
+        seen = reachable(copy)
+        for name in ("Gingivitis", "Patient referral for dental care", "Go see a Dentist",
+                     "Pediatric Dentist", "Refer to Dentist"):
+            self.assertIn(name, original["states"])
+            self.assertNotIn(name, seen)
+        self.assertIn(step, seen)
 
     def test_every_module_that_reads_the_veteran_attribute_is_guarded_by_it(self):
         # the empty veteran module is enough only while each veteran module starts with a check

@@ -1,16 +1,28 @@
 {
   "name": "Dental and Oral Examination",
   "remarks": [
-    "Replaces src/main/resources/modules/dental_and_oral_examination.json with a module that does nothing. Load it with -d config/common/modules.",
-    "The original is a dental care pathway started by a dental referral that every wellness encounter sets: 91% of patients had dental caries, 93% gingivitis, and 96% to 99% a dental referral or fluoride treatment, with United States rates and payment rules. The providers here are public only and do not provide dental care. The only other module that reads its output is dentures, which starts only when the attribute missing_teeth (set here) is 2 or more, so it stays idle; the attribute dental_referral is set by other modules and read only here."
+    "Replaces src/main/resources/modules/dental_and_oral_examination.json with a module that writes nothing to the record. Load it with -d config/common/modules.",
+    "The original is a dental care pathway started by a dental referral: 91% of patients had dental caries, 93% gingivitis, and 96% to 99% a dental referral or fluoride treatment, with United States rates and payment rules. The providers here are public only and do not provide dental care. The module keeps one job of the original: it clears the attribute dental_referral each time it is set. The kidney and bone marrow transplant, aortic valve repair and replacement (referral and preoperative) and broken jaw modules set the attribute and then wait in a loop until it is nil again, so without this module they would never finish (no transplant, no valve surgery, no jaw treatment). The module dentures starts only when missing_teeth (set only by the original) is 2 or more, so it stays idle."
   ],
   "states": {
     "Initial": {
       "type": "Initial",
-      "direct_transition": "Terminal"
+      "direct_transition": "Wait for Dental Referral"
     },
-    "Terminal": {
-      "type": "Terminal"
+    "Wait for Dental Referral": {
+      "type": "Guard",
+      "allow": {
+        "condition_type": "Attribute",
+        "attribute": "dental_referral",
+        "operator": "is not nil"
+      },
+      "direct_transition": "Reset Dental Referral"
+    },
+    "Reset Dental Referral": {
+      "type": "SetAttribute",
+      "attribute": "dental_referral",
+      "direct_transition": "Wait for Dental Referral",
+      "value": null
     }
   },
   "gmf_version": 2
