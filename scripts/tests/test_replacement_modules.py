@@ -21,8 +21,9 @@ EPILEPSY = "epilepsy.json"
 INJURIES = "injuries.json"
 COPD = "copd.json"
 LUNG_CANCER = "lung_cancer.json"
+KIDNEY = "chronic_kidney_disease.json"
 EXPECTED = EMPTY + [OPIOID_ADDICTION, OPIOID_CHRONIC, DIABETES, OSTEOARTHRITIS, EPILEPSY,
-                    INJURIES, COPD, LUNG_CANCER]
+                    INJURIES, COPD, LUNG_CANCER, KIDNEY]
 # states of the chronic pain module that start an opioid prescription or an aberrant urine test
 OPIOID_ENTRIES = {"Enter_IR/SA_Opioid_Directed_Use_1", "Enter_IR/SA_Opioid_Directed_Use_2",
                   "Enter_ER/LA_Opioid_Directed_Use", "Urine_Drug_Testing_Aberrant_Positive_1",
@@ -331,6 +332,32 @@ class ReplacementModulesTest(unittest.TestCase):
             self.assertEqual("Delay", band["type"])
             self.assertGreaterEqual(band["range"]["low"], 45)
             self.assertEqual("Lung Cancer Probabilities", band["direct_transition"])
+
+    def test_the_kidney_copy_only_slows_the_step_to_end_stage_renal_disease(self):
+        original = load(os.path.join(BUILT_IN, KIDNEY))
+        copy = load(os.path.join(REPLACEMENTS, KIDNEY))
+        step = "Nephropathy_Progression"
+        self.assertEqual(sorted(original["states"]), sorted(copy["states"]))
+        self.assertEqual(without(original, step), without(copy, step))
+        self.assertTrue(copy.get("remarks"))
+        before = original["states"][step]["complex_transition"]
+        after = copy["states"][step]["complex_transition"]
+        self.assertEqual(len(before), len(after))
+        changed = 0
+        for old, new in zip(before, after):
+            self.assertEqual(old.get("condition"), new.get("condition"))
+            self.assertEqual(old.get("transition"), new.get("transition"))
+            old_d = {d["transition"]: d["distribution"] for d in old.get("distributions", [])}
+            new_d = {d["transition"]: d["distribution"] for d in new.get("distributions", [])}
+            self.assertEqual(set(old_d), set(new_d))
+            self.assertAlmostEqual(1.0, sum(new_d.values()) or 1.0, places=6)
+            if old_d != new_d:
+                changed += 1
+                # the step from stage 4 to end-stage disease (upstream 0.01 a month) is rarer
+                self.assertEqual(0.01, old_d["Expected_Lifespan_for_ESRD"])
+                self.assertLess(new_d["Expected_Lifespan_for_ESRD"], 0.01)
+                self.assertGreater(new_d["Expected_Lifespan_for_ESRD"], 0)
+        self.assertEqual(1, changed)
 
     def test_every_module_that_reads_the_veteran_attribute_is_guarded_by_it(self):
         # the empty veteran module is enough only while each veteran module starts with a check
