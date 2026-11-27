@@ -15,7 +15,9 @@ EMPTY = ["encounter/hark_screening.json", "encounter/sdoh_hrsn.json", "homelessn
          "veteran.json"]
 OPIOID_ADDICTION = "opioid_addiction.json"
 OPIOID_CHRONIC = "prescribing_opioids_for_chronic_pain_and_treatment_of_oud.json"
-EXPECTED = EMPTY + [OPIOID_ADDICTION, OPIOID_CHRONIC]
+DIABETES = "metabolic_syndrome_disease.json"
+OSTEOARTHRITIS = "osteoarthritis.json"
+EXPECTED = EMPTY + [OPIOID_ADDICTION, OPIOID_CHRONIC, DIABETES, OSTEOARTHRITIS]
 # states of the chronic pain module that start an opioid prescription or an aberrant urine test
 OPIOID_ENTRIES = {"Enter_IR/SA_Opioid_Directed_Use_1", "Enter_IR/SA_Opioid_Directed_Use_2",
                   "Enter_ER/LA_Opioid_Directed_Use", "Urine_Drug_Testing_Aberrant_Positive_1",
@@ -40,6 +42,21 @@ def transitions(node):
 def load(path):
     with open(path, encoding="utf-8") as f:
         return json.load(f)
+
+
+def without(module, *keys):
+    """The module with the given state names and the remarks left out, to compare the rest."""
+    copy = json.loads(json.dumps(module))
+    copy.pop("remarks", None)
+    for key in keys:
+        copy["states"].pop(key)
+    return copy
+
+
+def white_branch(module):
+    state = module["states"]["Non_Veteran_Diabetes_Prevalence"]
+    return [c for c in state["complex_transition"]
+            if c.get("condition", {}).get("race") == "White"][0]["distributions"]
 
 
 class ReplacementModulesTest(unittest.TestCase):
@@ -93,6 +110,43 @@ class ReplacementModulesTest(unittest.TestCase):
             original_targets |= set(transitions(state))
         self.assertEqual(OPIOID_ENTRIES, original_targets & OPIOID_ENTRIES)
         self.assertTrue(copy.get("remarks"))
+
+    def test_the_diabetes_copy_only_changes_the_white_branch_shares(self):
+        original = load(os.path.join(BUILT_IN, DIABETES))
+        copy = load(os.path.join(REPLACEMENTS, DIABETES))
+        # the rest of the module is the upstream one; the White branch is compared below
+        for module in (original, copy):
+            white_branch(module).clear()
+        self.assertEqual(without(original), without(copy))
+        self.assertTrue(copy.get("remarks"))
+        # upstream still has the shares we replaced, so a change there is noticed
+        upstream = {d["transition"]: d["distribution"]
+                    for d in white_branch(load(os.path.join(BUILT_IN, DIABETES)))}
+        self.assertEqual({"Eventual_Diabetes": 0.25, "Eventual_Prediabetes": 0.45,
+                          "No_Diabetes": 0.3}, upstream)
+
+    def test_the_diabetes_shares_keep_prediabetes_and_sum_to_one(self):
+        shares = {d["transition"]: d["distribution"]
+                  for d in white_branch(load(os.path.join(REPLACEMENTS, DIABETES)))}
+        self.assertEqual(0.45, shares["Eventual_Prediabetes"])
+        self.assertLess(shares["Eventual_Diabetes"], 0.25)
+        self.assertAlmostEqual(1.0, sum(shares.values()), places=6)
+
+    def test_the_osteoarthritis_copy_only_changes_the_non_veteran_shares(self):
+        original = load(os.path.join(BUILT_IN, OSTEOARTHRITIS))
+        copy = load(os.path.join(REPLACEMENTS, OSTEOARTHRITIS))
+        self.assertEqual(without(original, "Non_Veteran"), without(copy, "Non_Veteran"))
+        self.assertTrue(copy.get("remarks"))
+        for module, expected in ((original, {"M": 0.21, "F": 0.2267}), (copy, None)):
+            for branch in module["states"]["Non_Veteran"]["complex_transition"]:
+                gender = branch["condition"]["gender"]
+                shares = {d["transition"]: d["distribution"] for d in branch["distributions"]}
+                self.assertEqual({"Delay_Until_Symptoms", "Terminal"}, set(shares))
+                self.assertAlmostEqual(1.0, sum(shares.values()), places=6)
+                if expected:  # upstream still has the shares we replaced
+                    self.assertEqual(expected[gender], shares["Delay_Until_Symptoms"])
+                else:
+                    self.assertLess(shares["Delay_Until_Symptoms"], 0.21)
 
     def test_every_module_that_reads_the_veteran_attribute_is_guarded_by_it(self):
         # the empty veteran module is enough only while each veteran module starts with a check
