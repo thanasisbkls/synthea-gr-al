@@ -1201,12 +1201,39 @@ public final class LifecycleModule extends Module {
     // http://www.cdc.gov/tobacco/data_statistics/fact_sheets/youth_data/tobacco_use/
     if (person.attributes.get(Person.SMOKER) == null && person.ageInYears(time) == 16) {
       int year = Utilities.getYear(time);
-      Boolean smoker = person.rand() < likelihoodOfBeingASmoker(year);
+      Boolean smoker = person.rand() < smokerProbability(
+          (String) person.attributes.get(Person.GENDER), year, SMOKING_START_MALE,
+          SMOKING_START_FEMALE);
       person.attributes.put(Person.SMOKER, smoker);
       double quitSmokingBaseline = Config.getAsDouble("lifecycle.quit_smoking.baseline", 0.01);
       person.attributes.put(LifecycleModule.QUIT_SMOKING_PROBABILITY, quitSmokingBaseline);
     }
   }
+
+  /**
+   * Probability that a person of the given gender who is 16 years old in the given year becomes
+   * a smoker, from the properties lifecycle.smoking.start_probability.male and .female (a fixed
+   * value for every year) if they are set, otherwise from the built-in United States trend.
+   * @param gender "M" or "F"
+   * @param year the year the person is 16
+   * @param male the probability for men, or null
+   * @param female the probability for women, or null
+   * @return the probability
+   */
+  static double smokerProbability(String gender, int year, Double male, Double female) {
+    Double configured = "F".equals(gender) ? female : male;
+    return configured != null ? configured : likelihoodOfBeingASmoker(year);
+  }
+
+  private static Double optionalDouble(String key) {
+    String value = Config.get(key, "");
+    return (value == null || value.trim().isEmpty()) ? null : Double.valueOf(value.trim());
+  }
+
+  private static final Double SMOKING_START_MALE =
+      optionalDouble("lifecycle.smoking.start_probability.male");
+  private static final Double SMOKING_START_FEMALE =
+      optionalDouble("lifecycle.smoking.start_probability.female");
 
   private static double likelihoodOfBeingASmoker(int year) {
     // 16.1% of MA are smokers in 2016.

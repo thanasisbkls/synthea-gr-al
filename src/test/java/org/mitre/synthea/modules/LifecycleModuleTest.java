@@ -208,4 +208,23 @@ public class LifecycleModuleTest {
       }
     }
   }
+
+  @Test
+  public void testSmokerProbabilityDefaultsToTheBuiltInTrend() {
+    for (int year : new int[] {1950, 1990, 2016}) {
+      double trend = year < 1965 ? 0.424 : ((year * -0.4865) + 996.41) / 100.0;
+      assertEquals(trend, LifecycleModule.smokerProbability("M", year, null, null), 1e-12);
+      assertEquals(trend, LifecycleModule.smokerProbability("F", year, null, null), 1e-12);
+    }
+  }
+
+  @Test
+  public void testSmokerProbabilityFromTheProperties() {
+    assertEquals(0.55, LifecycleModule.smokerProbability("M", 1990, 0.55, 0.1), 0.0);
+    assertEquals(0.1, LifecycleModule.smokerProbability("F", 1990, 0.55, 0.1), 0.0);
+    // only one gender set: the other keeps the built-in trend
+    assertEquals(0.55, LifecycleModule.smokerProbability("M", 2000, 0.55, null), 0.0);
+    assertEquals(((2000 * -0.4865) + 996.41) / 100.0,
+        LifecycleModule.smokerProbability("F", 2000, 0.55, null), 1e-12);
+  }
 }
