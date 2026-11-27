@@ -1,0 +1,17 @@
+{
+  "name": "substance use screening",
+  "remarks": [
+    "Replaces src/main/resources/modules/encounter/substance_use_screening.json with a module that does nothing. Load it with -d config/common/modules.",
+    "The original runs AUDIT-C, DAST-10 and CRAFFT screenings at wellness encounters with United States positive rates and writes the findings Unhealthy alcohol drinking behavior (34% of patients), Misuses drugs (23%) and Risk activity involvement (57%). No source shows that these screenings are done in public primary care in Greece or Albania, and the rates are not local. Nothing else reads its scores or findings."
+  ],
+  "states": {
+    "Initial": {
+      "type": "Initial",
+      "direct_transition": "Terminal"
+    },
+    "Terminal": {
+      "type": "Terminal"
+    }
+  },
+  "gmf_version": 2
+}

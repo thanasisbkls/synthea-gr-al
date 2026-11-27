@@ -1,0 +1,17 @@
+{
+  "name": "anxiety_screening",
+  "remarks": [
+    "Replaces src/main/resources/modules/encounter/anxiety_screening.json with a module that does nothing. Load it with -d config/common/modules.",
+    "The original runs a GAD-7 screening at wellness encounters with a United States prevalence (23.4% of women, 12.6% of men by its own transitions) and writes the finding Severe anxiety (panic) (33% of patients). The rates are not local and nothing else reads its score or finding."
+  ],
+  "states": {
+    "Initial": {
+      "type": "Initial",
+      "direct_transition": "Terminal"
+    },
+    "Terminal": {
+      "type": "Terminal"
+    }
+  },
+  "gmf_version": 2
+}

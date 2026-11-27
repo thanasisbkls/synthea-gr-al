@@ -12,7 +12,8 @@ ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
 REPLACEMENTS = os.path.join(ROOT, "config", "common", "modules")
 BUILT_IN = os.path.join(ROOT, "src", "main", "resources", "modules")
 EMPTY = ["encounter/hark_screening.json", "encounter/sdoh_hrsn.json", "homelessness.json",
-         "veteran.json"]
+         "veteran.json", "med_rec.json", "encounter/substance_use_screening.json",
+         "encounter/anxiety_screening.json", "dental_and_oral_examination.json"]
 OPIOID_ADDICTION = "opioid_addiction.json"
 OPIOID_CHRONIC = "prescribing_opioids_for_chronic_pain_and_treatment_of_oud.json"
 DIABETES = "metabolic_syndrome_disease.json"
@@ -22,8 +23,9 @@ INJURIES = "injuries.json"
 COPD = "copd.json"
 LUNG_CANCER = "lung_cancer.json"
 KIDNEY = "chronic_kidney_disease.json"
+DIALYSIS = "dialysis.json"
 EXPECTED = EMPTY + [OPIOID_ADDICTION, OPIOID_CHRONIC, DIABETES, OSTEOARTHRITIS, EPILEPSY,
-                    INJURIES, COPD, LUNG_CANCER, KIDNEY]
+                    INJURIES, COPD, LUNG_CANCER, KIDNEY, DIALYSIS]
 # states of the chronic pain module that start an opioid prescription or an aberrant urine test
 OPIOID_ENTRIES = {"Enter_IR/SA_Opioid_Directed_Use_1", "Enter_IR/SA_Opioid_Directed_Use_2",
                   "Enter_ER/LA_Opioid_Directed_Use", "Urine_Drug_Testing_Aberrant_Positive_1",
@@ -358,6 +360,39 @@ class ReplacementModulesTest(unittest.TestCase):
                 self.assertLess(new_d["Expected_Lifespan_for_ESRD"], 0.01)
                 self.assertGreater(new_d["Expected_Lifespan_for_ESRD"], 0)
         self.assertEqual(1, changed)
+
+    def test_only_the_dental_module_sets_the_attribute_the_dentures_module_waits_for(self):
+        # dentures starts only when missing_teeth is set, so it stays idle with the empty dental
+        # module; a new upstream module that sets the attribute would start it unnoticed
+        setters = []
+        for root, _, files in os.walk(BUILT_IN):
+            for name in files:
+                if not name.endswith(".json"):
+                    continue
+                module = load(os.path.join(root, name))
+                for state in module["states"].values():
+                    if state.get("type") == "SetAttribute" and state.get("attribute") == "missing_teeth":
+                        setters.append(name)
+        self.assertEqual({"dental_and_oral_examination.json"}, set(setters))
+        dentures = load(os.path.join(BUILT_IN, "dentures.json"))
+        self.assertIn('"attribute": "missing_teeth"',
+                      json.dumps(dentures["states"]["Wait for Missing Teeth"]))
+
+    def test_the_dialysis_copy_starts_at_stage_5_and_nothing_else_changes(self):
+        original = load(os.path.join(BUILT_IN, DIALYSIS))
+        copy = load(os.path.join(REPLACEMENTS, DIALYSIS))
+        self.assertEqual(sorted(original["states"]), sorted(copy["states"]))
+        self.assertTrue(copy.get("remarks"))
+        # the original starts dialysis at stage 4; so a change upstream is noticed
+        self.assertIn('"operator": ">=", "value": 4', json.dumps(original["states"]["CKD guard"]))
+        self.assertIn('"operator": "<", "value": 4',
+                      json.dumps(original["states"]["3 day delay"]))
+        # in the copy the only differences are those two numbers
+        text = json.dumps(copy["states"], sort_keys=True)
+        expected = json.dumps(original["states"], sort_keys=True).replace(
+            '"operator": ">=", "value": 4', '"operator": ">=", "value": 5').replace(
+            '"operator": "<", "value": 4', '"operator": "<", "value": 5')
+        self.assertEqual(expected, text)
 
     def test_every_module_that_reads_the_veteran_attribute_is_guarded_by_it(self):
         # the empty veteran module is enough only while each veteran module starts with a check
