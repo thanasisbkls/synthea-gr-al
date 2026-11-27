@@ -19,8 +19,10 @@ DIABETES = "metabolic_syndrome_disease.json"
 OSTEOARTHRITIS = "osteoarthritis.json"
 EPILEPSY = "epilepsy.json"
 INJURIES = "injuries.json"
+COPD = "copd.json"
+LUNG_CANCER = "lung_cancer.json"
 EXPECTED = EMPTY + [OPIOID_ADDICTION, OPIOID_CHRONIC, DIABETES, OSTEOARTHRITIS, EPILEPSY,
-                    INJURIES]
+                    INJURIES, COPD, LUNG_CANCER]
 # states of the chronic pain module that start an opioid prescription or an aberrant urine test
 OPIOID_ENTRIES = {"Enter_IR/SA_Opioid_Directed_Use_1", "Enter_IR/SA_Opioid_Directed_Use_2",
                   "Enter_ER/LA_Opioid_Directed_Use", "Urine_Drug_Testing_Aberrant_Positive_1",
@@ -259,6 +261,76 @@ class ReplacementModulesTest(unittest.TestCase):
             for target, value in before.items():
                 if target not in ("Gunshot_Injury", "Wait_For_Injury"):
                     self.assertEqual(value, after[target], name + " " + target)
+
+    def test_the_copd_copy_starts_smokers_later_and_kills_fewer(self):
+        original = load(os.path.join(BUILT_IN, COPD))
+        copy = load(os.path.join(REPLACEMENTS, COPD))
+        changed = ("Potential_COPD_Smoker", "Living_with_COPD_Active_Smoker",
+                   "Living_with_COPD_Nonsmoker")
+        self.assertEqual(sorted(original["states"]), sorted(copy["states"]))
+        self.assertEqual(without(original, *changed), without(copy, *changed))
+        self.assertTrue(copy.get("remarks"))
+        # below 40 a smoker has the non-smoker onset chance; from 40 the upstream chances shrink
+        branches = copy["states"]["Potential_COPD_Smoker"]["complex_transition"]
+        young = branches[0]
+        self.assertEqual("Age", young["condition"]["condition_type"])
+        self.assertEqual(40, young["condition"]["quantity"])
+        nonsmoker = {d["transition"]: d["distribution"] for d in
+                     original["states"]["Potential_COPD_Nonsmoker"]["complex_transition"][-1][
+                         "distributions"]}
+        for d in young["distributions"]:
+            if d["transition"] in ("Emphysema", "Chronic_Bronchitis"):
+                self.assertEqual(nonsmoker[d["transition"]], d["distribution"])
+        before = original["states"]["Potential_COPD_Smoker"]["complex_transition"]
+        self.assertEqual(len(before), len(branches) - 1)
+        for old, new in zip(before, branches[1:]):
+            self.assertEqual(old["condition"], new["condition"])
+            for o, n in zip(old["distributions"], new["distributions"]):
+                self.assertEqual(o["transition"], n["transition"])
+                if o["transition"] != "Potential_COPD_Smoker":
+                    self.assertLess(n["distribution"], o["distribution"])
+            self.assertAlmostEqual(1.0, sum(d["distribution"] for d in new["distributions"]),
+                                   places=6)
+        # upstream still has the low-status onset chances we replaced
+        self.assertEqual(0.008, before[0]["distributions"][0]["distribution"])
+        # the hospice check at each follow-up is rarer than upstream, and the rest sums to 1
+        for name in changed[1:]:
+            for old, new in zip(original["states"][name]["complex_transition"],
+                                copy["states"][name]["complex_transition"]):
+                if "distributions" not in old:
+                    continue
+                share = {d["transition"]: d["distribution"] for d in old["distributions"]}
+                now = {d["transition"]: d["distribution"] for d in new["distributions"]}
+                self.assertLess(now["Hospice Check"], share["Hospice Check"])
+                self.assertAlmostEqual(1.0, sum(now.values()), places=6)
+
+    def test_the_lung_cancer_copy_only_changes_how_the_age_is_drawn(self):
+        original = load(os.path.join(BUILT_IN, LUNG_CANCER))
+        copy = load(os.path.join(REPLACEMENTS, LUNG_CANCER))
+        new_states = set(copy["states"]) - set(original["states"])
+        self.assertTrue({"Thinning", "Age_Choice"} <= new_states)
+        self.assertTrue(all(n in ("Thinning", "Age_Choice") or n.startswith("Ages_")
+                            for n in new_states))
+        self.assertEqual(without(original, "Initial"), without(copy, *new_states, "Initial"))
+        self.assertTrue(copy.get("remarks"))
+        self.assertEqual("Ages_45_65", original["states"]["Initial"]["direct_transition"])
+        self.assertEqual("Thinning", copy["states"]["Initial"]["direct_transition"])
+        # upstream's uniform age between 45 and 65 is no longer reachable
+        self.assertIn("Ages_45_65", reachable(original))
+        self.assertNotIn("Ages_45_65", reachable(copy))
+        # the thinning keeps part of the people and the age bands start at 45
+        thinning = {d["transition"]: d["distribution"]
+                    for d in copy["states"]["Thinning"]["distributed_transition"]}
+        self.assertEqual({"Age_Choice", "Terminal"}, set(thinning))
+        self.assertAlmostEqual(1.0, sum(thinning.values()), places=6)
+        self.assertTrue(0 < thinning["Age_Choice"] <= 1)
+        choice = copy["states"]["Age_Choice"]["distributed_transition"]
+        self.assertAlmostEqual(1.0, sum(d["distribution"] for d in choice), places=6)
+        for d in choice:
+            band = copy["states"][d["transition"]]
+            self.assertEqual("Delay", band["type"])
+            self.assertGreaterEqual(band["range"]["low"], 45)
+            self.assertEqual("Lung Cancer Probabilities", band["direct_transition"])
 
     def test_every_module_that_reads_the_veteran_attribute_is_guarded_by_it(self):
         # the empty veteran module is enough only while each veteran module starts with a check
