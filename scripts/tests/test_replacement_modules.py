@@ -24,8 +24,10 @@ COPD = "copd.json"
 LUNG_CANCER = "lung_cancer.json"
 KIDNEY = "chronic_kidney_disease.json"
 DIALYSIS = "dialysis.json"
+HEART_FAILURE = "congestive_heart_failure.json"
 EXPECTED = EMPTY + [OPIOID_ADDICTION, OPIOID_CHRONIC, DIABETES, OSTEOARTHRITIS, EPILEPSY,
-                    INJURIES, COPD, LUNG_CANCER, KIDNEY, DIALYSIS]
+                    INJURIES, COPD, LUNG_CANCER, KIDNEY, DIALYSIS,
+                    HEART_FAILURE]
 # states of the chronic pain module that start an opioid prescription or an aberrant urine test
 OPIOID_ENTRIES = {"Enter_IR/SA_Opioid_Directed_Use_1", "Enter_IR/SA_Opioid_Directed_Use_2",
                   "Enter_ER/LA_Opioid_Directed_Use", "Urine_Drug_Testing_Aberrant_Positive_1",
@@ -393,6 +395,31 @@ class ReplacementModulesTest(unittest.TestCase):
             '"operator": ">=", "value": 4', '"operator": ">=", "value": 5').replace(
             '"operator": "<", "value": 4', '"operator": "<", "value": 5')
         self.assertEqual(expected, text)
+
+    def test_the_heart_failure_copy_only_lowers_the_death_chances(self):
+        original = load(os.path.join(BUILT_IN, HEART_FAILURE))
+        copy = load(os.path.join(REPLACEMENTS, HEART_FAILURE))
+        changed = ["Inpatient Death decision", "Check Outcome"]
+        self.assertEqual(sorted(original["states"]), sorted(copy["states"]))
+        self.assertEqual(without(original, *changed), without(copy, *changed))
+        self.assertTrue(copy.get("remarks"))
+
+        def chances(module):
+            decision = module["states"]["Inpatient Death decision"]["complex_transition"]
+            result = {"many admissions": decision[0]["distributions"],
+                      "few admissions": decision[1]["distributions"],
+                      "outcome": module["states"]["Check Outcome"]["distributed_transition"]}
+            return {k: {d["transition"]: d["distribution"] for d in v}
+                    for k, v in result.items()}
+        old, new = chances(original), chances(copy)
+        for key in old:
+            self.assertEqual(set(old[key]), set(new[key]), key)
+            self.assertAlmostEqual(1.0, sum(new[key].values()), places=6)
+        # death in hospital per daily check, and death within 28 days / a year of discharge
+        for key, state in (("many admissions", "Death"), ("few admissions", "Death"),
+                           ("outcome", "Dead within 28 days"), ("outcome", "Dead within 1 year")):
+            self.assertLess(new[key][state], old[key][state], (key, state))
+            self.assertGreater(new[key][state], 0, (key, state))
 
     def test_every_module_that_reads_the_veteran_attribute_is_guarded_by_it(self):
         # the empty veteran module is enough only while each veteran module starts with a check
