@@ -18,7 +18,9 @@ OPIOID_CHRONIC = "prescribing_opioids_for_chronic_pain_and_treatment_of_oud.json
 DIABETES = "metabolic_syndrome_disease.json"
 OSTEOARTHRITIS = "osteoarthritis.json"
 EPILEPSY = "epilepsy.json"
-EXPECTED = EMPTY + [OPIOID_ADDICTION, OPIOID_CHRONIC, DIABETES, OSTEOARTHRITIS, EPILEPSY]
+INJURIES = "injuries.json"
+EXPECTED = EMPTY + [OPIOID_ADDICTION, OPIOID_CHRONIC, DIABETES, OSTEOARTHRITIS, EPILEPSY,
+                    INJURIES]
 # states of the chronic pain module that start an opioid prescription or an aberrant urine test
 OPIOID_ENTRIES = {"Enter_IR/SA_Opioid_Directed_Use_1", "Enter_IR/SA_Opioid_Directed_Use_2",
                   "Enter_ER/LA_Opioid_Directed_Use", "Urine_Drug_Testing_Aberrant_Positive_1",
@@ -52,6 +54,47 @@ def without(module, *keys):
     for key in keys:
         copy["states"].pop(key)
     return copy
+
+
+def distributions(state):
+    """Every {distribution, transition} entry of a state, whatever kind of transition it has."""
+    found = []
+    if isinstance(state, dict):
+        if "transition" in state and "distribution" in state:
+            found.append(state)
+        for value in state.values():
+            found += distributions(value)
+    elif isinstance(state, list):
+        for value in state:
+            found += distributions(value)
+    return found
+
+
+def successors(node):
+    """Target state names of a state that can be taken (a distribution of 0 never is)."""
+    found = []
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if key in ("transition", "direct_transition") and isinstance(value, str):
+                if node.get("distribution", 1) != 0:
+                    found.append(value)
+            else:
+                found += successors(value)
+    elif isinstance(node, list):
+        for value in node:
+            found += successors(value)
+    return found
+
+
+def reachable(module):
+    seen, todo = set(), ["Initial"]
+    while todo:
+        name = todo.pop()
+        if name in seen or name not in module["states"]:
+            continue
+        seen.add(name)
+        todo += successors(module["states"][name])
+    return seen
 
 
 def white_branch(module):
@@ -178,6 +221,44 @@ class ReplacementModulesTest(unittest.TestCase):
                                    shares["Sudden_Cardiac_Death"], places=5, msg=name)
             self.assertEqual(0.2, shares["Seizure_Encounter"])
             self.assertAlmostEqual(1.0, sum(shares.values()), places=6)
+
+    def test_the_injuries_copy_never_reaches_the_gunshot_pathway(self):
+        original = load(os.path.join(BUILT_IN, INJURIES))
+        copy = load(os.path.join(REPLACEMENTS, INJURIES))
+        self.assertEqual(sorted(original["states"]), sorted(copy["states"]))
+        self.assertTrue(copy.get("remarks"))
+        lists = {}
+        for name, module in (("original", original), ("copy", copy)):
+            lists[name] = [d for state in module["states"].values()
+                           for d in distributions(state)]
+        gunshot = {n: [d["distribution"] for d in lists[n] if d["transition"] == "Gunshot_Injury"]
+                   for n in lists}
+        # upstream has it in the child, adult and elderly (two branches) incidence lists
+        self.assertEqual([0.000318] * 4, gunshot["original"])
+        self.assertEqual([0] * 4, gunshot["copy"])
+        # no state of the pathway can be reached from the start with a non-zero chance
+        reached = reachable(copy)
+        self.assertNotIn("Gunshot_Injury", reached)
+        self.assertNotIn("Death_Gunshot_Wound", reached)
+        self.assertNotIn("Gunshot_Wound", reached)
+        # the original does reach them, so the test would notice a change of the upstream module
+        self.assertIn("Death_Gunshot_Wound", reachable(original))
+
+    def test_the_injuries_copy_keeps_every_other_injury_probability(self):
+        original = load(os.path.join(BUILT_IN, INJURIES))
+        copy = load(os.path.join(REPLACEMENTS, INJURIES))
+        for name, state in original["states"].items():
+            before = {d["transition"]: d["distribution"] for d in distributions(state)}
+            after = {d["transition"]: d["distribution"] for d in distributions(copy["states"][name])}
+            if "Gunshot_Injury" not in before:
+                self.assertEqual(state, copy["states"][name], name)
+                continue
+            self.assertAlmostEqual(sum(v for v in before.values() if isinstance(v, float)),
+                                   sum(v for v in after.values() if isinstance(v, float)),
+                                   places=8, msg=name)
+            for target, value in before.items():
+                if target not in ("Gunshot_Injury", "Wait_For_Injury"):
+                    self.assertEqual(value, after[target], name + " " + target)
 
     def test_every_module_that_reads_the_veteran_attribute_is_guarded_by_it(self):
         # the empty veteran module is enough only while each veteran module starts with a check
