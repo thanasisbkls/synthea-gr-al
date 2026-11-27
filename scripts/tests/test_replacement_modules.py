@@ -17,7 +17,8 @@ OPIOID_ADDICTION = "opioid_addiction.json"
 OPIOID_CHRONIC = "prescribing_opioids_for_chronic_pain_and_treatment_of_oud.json"
 DIABETES = "metabolic_syndrome_disease.json"
 OSTEOARTHRITIS = "osteoarthritis.json"
-EXPECTED = EMPTY + [OPIOID_ADDICTION, OPIOID_CHRONIC, DIABETES, OSTEOARTHRITIS]
+EPILEPSY = "epilepsy.json"
+EXPECTED = EMPTY + [OPIOID_ADDICTION, OPIOID_CHRONIC, DIABETES, OSTEOARTHRITIS, EPILEPSY]
 # states of the chronic pain module that start an opioid prescription or an aberrant urine test
 OPIOID_ENTRIES = {"Enter_IR/SA_Opioid_Directed_Use_1", "Enter_IR/SA_Opioid_Directed_Use_2",
                   "Enter_ER/LA_Opioid_Directed_Use", "Urine_Drug_Testing_Aberrant_Positive_1",
@@ -147,6 +148,36 @@ class ReplacementModulesTest(unittest.TestCase):
                     self.assertEqual(expected[gender], shares["Delay_Until_Symptoms"])
                 else:
                     self.assertLess(shares["Delay_Until_Symptoms"], 0.21)
+
+    def test_the_epilepsy_copy_only_replaces_the_exit_of_the_treatment_loop(self):
+        original = load(os.path.join(BUILT_IN, EPILEPSY))
+        copy = load(os.path.join(REPLACEMENTS, EPILEPSY))
+        loop = "Undergoing_Seizure_Treatment"
+        outcomes = ("Treatment_Outcome_Child", "Treatment_Outcome_Adult")
+        self.assertEqual(set(original["states"]) | set(outcomes), set(copy["states"]))
+        self.assertEqual(without(original, loop), without(copy, loop, *outcomes))
+        self.assertTrue(copy.get("remarks"))
+        # upstream still has the 10% death chance we replaced, so a change there is noticed
+        upstream = {d["transition"]: d["distribution"]
+                    for d in original["states"][loop]["distributed_transition"]}
+        self.assertEqual({"Seizure_Encounter": 0.2, "Sudden_Cardiac_Death": 0.1,
+                          "Medication_Guard": 0.7}, upstream)
+        # the loop state now only waits (same delay) and branches on age
+        self.assertEqual(original["states"][loop]["range"], copy["states"][loop]["range"])
+        self.assertEqual(set(outcomes), {t.get("transition") for t in
+                                         copy["states"][loop]["conditional_transition"]})
+
+    def test_the_epilepsy_death_chances_follow_the_published_rates(self):
+        copy = load(os.path.join(REPLACEMENTS, EPILEPSY))
+        years = 0.396  # average length of one pass of the treatment loop
+        for name, per_thousand_years in (("Treatment_Outcome_Child", 0.22),
+                                         ("Treatment_Outcome_Adult", 1.2)):
+            shares = {d["transition"]: d["distribution"]
+                      for d in copy["states"][name]["distributed_transition"]}
+            self.assertAlmostEqual(per_thousand_years / 1000 * years,
+                                   shares["Sudden_Cardiac_Death"], places=5, msg=name)
+            self.assertEqual(0.2, shares["Seizure_Encounter"])
+            self.assertAlmostEqual(1.0, sum(shares.values()), places=6)
 
     def test_every_module_that_reads_the_veteran_attribute_is_guarded_by_it(self):
         # the empty veteran module is enough only while each veteran module starts with a check
